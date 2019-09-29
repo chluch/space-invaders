@@ -1,3 +1,4 @@
+"use strict";
 var hero = {
     left: window.innerWidth / 2
 };
@@ -33,4 +34,3 @@ document.onkeydown = function (e) {
 function moveHero() {
     document.getElementById("hero").style.left = hero.left + "px";
 }
-//# sourceMappingURL=index.js.map

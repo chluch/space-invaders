@@ -1,17 +1,18 @@
 //Define Starfield
 class Starfield {
     fps: number;
-    canvas: number;
+    canvas: null;
     width: number;
     height: number;
     minVelocity: number;
     maxVelocity: number;
     stars: number;
     intervalId: number;
+    starDiv!: HTMLElement;
 
     constructor(
         fps: number,
-        canvas: number,
+        canvas: null,
         width: number,
         height: number,
         minVelocity: number,
@@ -31,15 +32,20 @@ class Starfield {
 
 
 //Setup actual starfield properties
-let starfield = new Starfield(
-        30, null, 0, 0, 15, 30, 100, 0
-    );
+let starfield: Starfield = new Starfield(
+    30, null, 0, 0, 15, 30, 100, 0
+);
+
 
 
 //Insert starfield said above into a HTML div element
-function insertStarfield (div:HTMLElement) {
+function insertStarfield(div: HTMLElement) {
+    starfield.starDiv = div;
+    starfield.width = window.innerWidth;
+    starfield.height = window.innerHeight;
 
 }
+
 
 // Starfield.prototype.initialise = function(div: HTMLElement) {
 // this.containerDiv = div; //Make div element the same size as browser window

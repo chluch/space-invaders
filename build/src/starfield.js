@@ -1,3 +1,4 @@
+"use strict";
 //Define Starfield
 var Starfield = /** @class */ (function () {
     function Starfield(fps, canvas, width, height, minVelocity, maxVelocity, stars, intervalId) {
@@ -14,13 +15,17 @@ var Starfield = /** @class */ (function () {
 }());
 //Setup actual starfield properties
 var starfield = new Starfield(30, null, 0, 0, 15, 30, 100, 0);
+console.log(starfield);
 //Insert starfield said above into a HTML div element
-Starfield.prototype.initialise = function (div) {
-    this.containerDiv = div; //Make div element the same size as browser window
+function insertStarfield(div) {
+    this.starDiv = div;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-};
-//Run starfield
-Starfield.prototype.start = function () {
-};
-//# sourceMappingURL=starfield.js.map
+    window.addEventListener("resize", function (event) {
+    });
+}
+// Starfield.prototype.initialise = function(div: HTMLElement) {
+// this.containerDiv = div; //Make div element the same size as browser window
+// this.width = window.innerWidth;
+// this.height = window.innerHeight;
+// }
