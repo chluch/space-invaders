@@ -1,55 +1,113 @@
-//Define Starfield
-class Starfield {
-    fps: number;
-    canvas: null;
-    width: number;
-    height: number;
-    minVelocity: number;
-    maxVelocity: number;
-    stars: number;
-    intervalId: number;
-    starDiv!: HTMLElement;
-
+class Star {
     constructor(
-        fps: number,
-        canvas: null,
-        width: number,
-        height: number,
-        minVelocity: number,
-        maxVelocity: number,
-        stars: number,
-        intervalId: number) {
-        this.fps = fps;
-        this.canvas = canvas;
-        this.width = width;
-        this.height = height;
-        this.minVelocity = minVelocity;
-        this.maxVelocity = maxVelocity;
-        this.stars = stars;
-        this.intervalId = intervalId;
+        public x: number,
+        public y: number,
+        public size: number,
+        public velocity: number
+    ) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.velocity = velocity;
     }
 }
 
+//Define Starfield
+class Starfield {
 
-//Setup actual starfield properties
-let starfield: Starfield = new Starfield(
-    30, null, 0, 0, 15, 30, 100, 0
-);
+    canvas: HTMLCanvasElement;
+    width: number;
+    height: number;
+    stars: Array<Star>;
+    intervalId: number | null;
 
+    constructor(
+        private div: HTMLElement,
+        private fps: number,
+        private minVelocity: number,
+        private maxVelocity: number,
+        private numOfStars: number) {
 
+        this.fps = fps;
+        this.canvas = document.createElement('canvas');
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.stars = [];
+        this.minVelocity = minVelocity;
+        this.maxVelocity = maxVelocity;
+        this.numOfStars = numOfStars;
+        this.intervalId = null;
 
-//Insert starfield said above into a HTML div element
-function insertStarfield(div: HTMLElement) {
-    starfield.starDiv = div;
-    starfield.width = window.innerWidth;
-    starfield.height = window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        this.div.appendChild(this.canvas);
 
+        window.addEventListener('resize', (event) => {
+            this.width = window.innerWidth;
+            this.height = window.innerHeight;
+            this.canvas.width = this.width;
+            this.canvas.height = this.height;
+            this.draw();
+        });
+    }
+
+    start() {
+        for (let i = 0; i < this.numOfStars; i++) {
+            this.stars.push(new Star(
+                Math.random() * this.width,
+                Math.random() * this.height,
+                Math.random() * 3 + 1,
+                (Math.random() * (this.maxVelocity - this.minVelocity)) + this.minVelocity
+            ));
+        }
+        this.intervalId = setInterval(() => {
+            this.update();
+            this.draw();
+        }, 1000 / this.fps);
+    }
+
+    stop() {
+        this.stars = [];
+        clearInterval(this.intervalId!);
+    }
+
+    update() {
+        const dt = 1 / this.fps; //second per frame
+        for (let i = 0; i < this.stars.length; i++) {
+            let star = this.stars[i];
+            star.y += dt * star.velocity;
+
+            if (star.y > this.height) {
+                this.stars[i] = new Star(
+                    Math.random() * this.width,
+                    0,
+                    Math.random() * 3 + 1,
+                    (Math.random() * (this.maxVelocity - this.minVelocity)) + this.minVelocity);
+            }
+        }
+    }
+
+    draw() {
+        const ctx = this.canvas.getContext("2d");
+        ctx!.fillStyle = "#000000";
+        ctx!.fillRect(0, 0, this.width, this.height);
+        ctx!.fillStyle = "#ffffff";
+        for (const star of this.stars) {
+            ctx!.fillRect(star.x, star.y, star.size, star.size);
+        }
+    }
 }
 
-
-// Starfield.prototype.initialise = function(div: HTMLElement) {
-// this.containerDiv = div; //Make div element the same size as browser window
-// this.width = window.innerWidth;
-// this.height = window.innerHeight;
-// }
-
+const container = document.getElementById('container');
+const fps = 60;
+const minVelocity = Math.random() * 30 + 5;
+const maxVelocity = Math.random() * 50 + minVelocity;
+const numOfStars = Math.random() * 1000 + 50;
+const starfield = new Starfield(
+    container!,
+    fps,
+    minVelocity,
+    maxVelocity,
+    numOfStars
+);
+starfield.start();
