@@ -81,6 +81,6 @@ var container = document.getElementById('container');
 var fps = 60;
 var minVelocity = Math.random() * 30 + 5;
 var maxVelocity = Math.random() * 50 + minVelocity;
-var numOfStars = Math.random() * 1000 + 50;
+var numOfStars = Math.random() * 200 + 50;
 var starfield = new Starfield(container, fps, minVelocity, maxVelocity, numOfStars);
 starfield.start();
