@@ -47,8 +47,9 @@ var Game = /** @class */ (function () {
         this.pressedKeys = pressedKeys;
         this.config = config;
         this.lives = lives;
-        this.width = width;
-        this.height = height;
+        this.gameCanvas = gameCanvas;
+        this.width = gameCanvas.width;
+        this.height = gameCanvas.height;
         this.gameBounds = {
             left: gameCanvas.width / 2 - this.config.gameWidth / 2,
             right: gameCanvas.width / 2 + this.config.gameWidth / 2,
@@ -59,7 +60,6 @@ var Game = /** @class */ (function () {
         this.level = level;
         this.stateStack = [];
         this.pressedKeys = {};
-        this.gameCanvas = gameCanvas;
         this.previousX = previousX;
     }
     return Game;
