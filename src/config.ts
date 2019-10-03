@@ -1,4 +1,4 @@
-export class Config {
+class Config {
     constructor(
         public bombRate: number = 0.05,
         public bombMinVelocity: number = 50,

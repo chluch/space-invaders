@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var Config = /** @class */ (function () {
     function Config(bombRate, bombMinVelocity, bombMaxVelocity, invaderInitialVelocity, invaderAcceleration, invaderDropDistance, rocketVelocity, rocketMaxFireRate, gameWidth, gameHeight, fps, debugMode, invaderRanks, invaderFiles, shipSpeed, levelDifficultyMultiplier, pointsPerInvader, limitLevelIncrease, lives) {
         if (bombRate === void 0) { bombRate = 0.05; }
@@ -62,4 +61,3 @@ var Config = /** @class */ (function () {
     }
     return Config;
 }());
-exports.Config = Config;
