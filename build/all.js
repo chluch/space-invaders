@@ -62,6 +62,9 @@ var Config = /** @class */ (function () {
     return Config;
 }());
 // import { Config } from './config';
+var KEY_SPACE = 32;
+var KEY_LEFT = 37;
+var KEY_RIGHT = 39;
 var Game = /** @class */ (function () {
     function Game(config, gameCanvas) {
         this.config = config;
@@ -81,6 +84,7 @@ var Game = /** @class */ (function () {
         this.intervalId = null;
         this.state = { kind: "Welcome" };
         this.ctx = this.gameCanvas.getContext("2d");
+        this.input = [];
     }
     Game.prototype.start = function () {
         var _this = this;
@@ -95,7 +99,10 @@ var Game = /** @class */ (function () {
     Game.prototype.update = function () {
         switch (this.state.kind) {
             case "Welcome":
-                // console.log("Welcome");
+                var key = this.input.pop();
+                if (key === KEY_SPACE) {
+                    this.state = { kind: "Running" };
+                }
                 break;
             case "GameOver":
                 break;
@@ -108,34 +115,42 @@ var Game = /** @class */ (function () {
         switch (this.state.kind) {
             case "Welcome": {
                 this.ctx.clearRect(0, 0, this.width, this.height);
-                console.log(this.ctx);
-                this.ctx.font = "30px Mansalva";
+                this.ctx.font = "30px Faster One";
                 this.ctx.fillStyle = '#ffffff';
                 this.ctx.textBaseline = "middle";
                 this.ctx.textAlign = "center";
                 this.ctx.fillText("Space Invaders", this.width / 2, this.height / 2 - 40);
-                this.ctx.font = "16px Mansalva";
+                this.ctx.font = "14px Faster One";
                 this.ctx.fillText("Press 'Space' or touch to start.", this.width / 2, this.height / 2);
                 break;
             }
-            // case GameOver:
-            //     break;
-            // case Running:
-            //     break;
+            case "Running": {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                console.log(this.ctx);
+                break;
+            }
         }
     };
     Game.prototype.stop = function () {
         clearInterval(this.intervalId);
     };
+    Game.prototype.keyDown = function (event) {
+        var keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
+        if (keys.indexOf(event.keyCode) !== -1) {
+            console.log(this);
+            console.log(this.input);
+            this.input.push(event.keyCode);
+        }
+    };
     return Game;
 }());
-// import { Config } from './config';
-// import { Game } from './game';
 var space = document.getElementById('gamecontainer');
 var canvas = document.createElement('canvas');
 space.appendChild(canvas);
-var thisGame = new Game(new Config(), canvas);
-thisGame.start();
+var game = new Game(new Config(), canvas);
+game.start();
+//  Listen for keyboard events.
+window.addEventListener("keydown", function (e) { return game.keyDown(e); });
 var Star = /** @class */ (function () {
     function Star(x, y, size, velocity) {
         this.x = x;
@@ -221,3 +236,4 @@ var maxVelocity = Math.random() * 50 + minVelocity;
 var numOfStars = Math.random() * 200 + 50;
 var starfield = new Starfield(container, fps, minVelocity, maxVelocity, numOfStars);
 starfield.start();
+//# sourceMappingURL=all.js.map

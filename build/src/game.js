@@ -1,47 +1,11 @@
+"use strict";
 // import { Config } from './config';
-
-const KEY_SPACE = 32;
-const KEY_LEFT = 37;
-const KEY_RIGHT = 39;
-
-interface GameOver {
-    kind: "GameOver"
-}
-
-interface Welcome {
-    kind: "Welcome"
-}
-
-interface Running {
-    kind: "Running"
-}
-
-type State = GameOver | Welcome | Running;
-
-interface GameBound {
-    left: number;
-    right: number;
-    top: number;
-    bottom: number;
-}
-
-class Game {
-    lives: number;
-    width: number;
-    height: number;
-    score: number;
-    level: number;
-    gameCanvas: HTMLCanvasElement;
-    gameBounds: GameBound;
-    intervalId: number | null;
-    state: State;
-    ctx: CanvasRenderingContext2D;
-    input: Array<number>;
-
-    constructor(
-        private config: Config,
-        gameCanvas: HTMLCanvasElement
-    ) {
+var KEY_SPACE = 32;
+var KEY_LEFT = 37;
+var KEY_RIGHT = 39;
+var Game = /** @class */ (function () {
+    function Game(config, gameCanvas) {
+        this.config = config;
         this.config = config;
         this.lives = config.lives;
         this.gameCanvas = gameCanvas;
@@ -53,31 +17,29 @@ class Game {
             top: gameCanvas.height / 2 - this.config.gameHeight / 2,
             bottom: gameCanvas.height / 2 + this.config.gameHeight / 2
         };
-
         this.score = 0;
         this.level = 0;
         this.intervalId = null;
         this.state = { kind: "Welcome" };
-        this.ctx = this.gameCanvas.getContext("2d")!;
+        this.ctx = this.gameCanvas.getContext("2d");
         this.input = [];
     }
-    start() {
-        this.intervalId = setInterval(() => this.loop(), 1000 / this.config.fps);
-    }
-
-    loop() {
+    Game.prototype.start = function () {
+        var _this = this;
+        this.intervalId = setInterval(function () { return _this.loop(); }, 1000 / this.config.fps);
+    };
+    Game.prototype.loop = function () {
         //  Delta t is the time to update/draw.
-        const dt = 1 / this.config.fps;
+        var dt = 1 / this.config.fps;
         this.update();
         this.draw();
-    }
-
-    update() {
+    };
+    Game.prototype.update = function () {
         switch (this.state.kind) {
             case "Welcome":
-                const key = this.input.pop()
+                var key = this.input.pop();
                 if (key === KEY_SPACE) {
-                    this.state = {kind: "Running"}
+                    this.state = { kind: "Running" };
                 }
                 break;
             case "GameOver":
@@ -85,9 +47,8 @@ class Game {
             case "Running":
                 break;
         }
-    }
-
-    draw() {
+    };
+    Game.prototype.draw = function () {
         console.log("draw");
         switch (this.state.kind) {
             case "Welcome": {
@@ -107,29 +68,25 @@ class Game {
                 break;
             }
         }
-    }
-
-    stop() {
-        clearInterval(this.intervalId!);
-    }
-
-    keyDown(event: KeyboardEvent) {
-        const keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
+    };
+    Game.prototype.stop = function () {
+        clearInterval(this.intervalId);
+    };
+    Game.prototype.keyDown = function (event) {
+        var keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
         if (keys.indexOf(event.keyCode) !== -1) {
             console.log(this);
             console.log(this.input);
             this.input.push(event.keyCode);
         }
-    }
-}
-
-const space = document.getElementById('gamecontainer')!;
-const canvas = document.createElement('canvas')!;
+    };
+    return Game;
+}());
+var space = document.getElementById('gamecontainer');
+var canvas = document.createElement('canvas');
 space.appendChild(canvas);
-let game = new Game(new Config(), canvas);
+var game = new Game(new Config(), canvas);
 game.start();
-
 //  Listen for keyboard events.
-window.addEventListener("keydown", (e) => game.keyDown(e));
-
-
+window.addEventListener("keydown", function (e) { return game.keyDown(e); });
+//# sourceMappingURL=game.js.map
