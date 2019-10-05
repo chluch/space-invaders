@@ -4,6 +4,7 @@
   "description": "",
   "main": "starfield.js",
   "scripts": {
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +20,7 @@
   "devDependencies": {
     "ts-loader": "^6.2.0",
     "typescript": "^3.6.3",
-    "webpack": "^4.41.0"
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
   }
 }

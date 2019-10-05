@@ -1,4 +1,4 @@
-// import { Config } from './config';
+import { Config } from './config';
 
 const KEY_SPACE = 32;
 const KEY_LEFT = 37;
@@ -25,7 +25,7 @@ interface GameBound {
     bottom: number;
 }
 
-class Game {
+export class Game {
     lives: number;
     width: number;
     height: number;
@@ -123,13 +123,5 @@ class Game {
     }
 }
 
-const space = document.getElementById('gamecontainer')!;
-const canvas = document.createElement('canvas')!;
-space.appendChild(canvas);
-let game = new Game(new Config(), canvas);
-game.start();
-
-//  Listen for keyboard events.
-window.addEventListener("keydown", (e) => game.keyDown(e));
 
 

@@ -13,7 +13,7 @@ class Star {
 }
 
 //Define Starfield
-class Starfield {
+export class Starfield {
 
     canvas: HTMLCanvasElement;
     width: number;
