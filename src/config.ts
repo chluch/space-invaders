@@ -12,7 +12,7 @@ export class Config {
         public debugMode: boolean = false,
         public invaderRanks: number = 5,
         public invaderFiles: number = 10,
-        public shipSpeed: number = 120,
+        public shipSpeed: number = 400,
         public levelDifficultyMultiplier: number = 0.2,
         public pointsPerInvader: number = 5,
         public limitLevelIncrease: number = 25,

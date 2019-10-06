@@ -221,7 +221,7 @@ var Config = /** @class */ (function () {
         if (debugMode === void 0) { debugMode = false; }
         if (invaderRanks === void 0) { invaderRanks = 5; }
         if (invaderFiles === void 0) { invaderFiles = 10; }
-        if (shipSpeed === void 0) { shipSpeed = 120; }
+        if (shipSpeed === void 0) { shipSpeed = 400; }
         if (levelDifficultyMultiplier === void 0) { levelDifficultyMultiplier = 0.2; }
         if (pointsPerInvader === void 0) { pointsPerInvader = 5; }
         if (limitLevelIncrease === void 0) { limitLevelIncrease = 25; }
@@ -297,12 +297,14 @@ var Game = /** @class */ (function () {
         this.state = { kind: 'Welcome' };
         this.ctx = this.canvas.getContext('2d');
         this.input = [];
+        this.lastRocketTime = null;
         this.ship = {
             x: this.bounds.left + (this.bounds.right - this.bounds.left) / 2,
             y: this.bounds.bottom,
             width: 20,
             height: 16
         };
+        this.rockets = [];
     }
     Game.prototype.start = function () {
         var _this = this;
@@ -314,7 +316,7 @@ var Game = /** @class */ (function () {
         this.draw();
     };
     Game.prototype.update = function () {
-        var key = this.input.pop();
+        var key = this.input.shift();
         switch (this.state.kind) {
             case 'Welcome':
                 if (key === KEY_SPACE) {
@@ -323,11 +325,21 @@ var Game = /** @class */ (function () {
                 break;
             case 'Running':
                 if (key === KEY_LEFT) {
-                    this.ship.x -= this.config.shipSpeed * this.dt;
+                    var move = this.config.shipSpeed * this.dt;
+                    if (this.ship.x - this.ship.width / 2 - move > this.bounds.left) {
+                        this.ship.x -= move;
+                    }
                 }
                 if (key === KEY_RIGHT) {
-                    this.ship.x += this.config.shipSpeed * this.dt;
+                    var move = this.config.shipSpeed * this.dt;
+                    if (this.ship.x + this.ship.width / 2 + move < this.bounds.right) {
+                        this.ship.x += move;
+                    }
                 }
+                if (key === KEY_SPACE) {
+                    this.fireRocket();
+                }
+                this.moveRocket();
                 break;
         }
     };
@@ -349,10 +361,15 @@ var Game = /** @class */ (function () {
             }
             case 'Running': {
                 this.ctx.clearRect(0, 0, this.width, this.height);
-                //  Draw ship.
-                console.log(this.ship);
+                //draw spaceship
                 this.ctx.fillStyle = '#ffffff';
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
+                //draw rockets
+                this.ctx.fillStyle = '#ff0000';
+                for (var i = 0; i < this.rockets.length; i++) {
+                    var rocket = this.rockets[i];
+                    this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
+                }
                 break;
             }
         }
@@ -366,6 +383,27 @@ var Game = /** @class */ (function () {
             console.log(this);
             console.log(this.input);
             this.input.push(event.keyCode);
+        }
+    };
+    Game.prototype.fireRocket = function () {
+        if (this.lastRocketTime === null || ((new Date()).valueOf() - this.lastRocketTime) > (1000 / this.config.rocketMaxFireRate)) {
+            var rocket = {
+                x: this.ship.x,
+                y: this.ship.y - this.ship.height / 2,
+                velocity: this.config.rocketVelocity
+            };
+            //  Add a rocket.
+            this.rockets.push(rocket);
+            this.lastRocketTime = (new Date()).valueOf();
+        }
+    };
+    Game.prototype.moveRocket = function () {
+        for (var _i = 0, _a = this.rockets; _i < _a.length; _i++) {
+            var rocket = _a[_i];
+            rocket.y -= this.dt * rocket.velocity;
+        }
+        if (this.rockets.length > 0 && this.rockets[0].y < 0) {
+            this.rockets.shift();
         }
     };
     return Game;
