@@ -102,16 +102,11 @@ var numOfStars = Math.random() * 200 + 50;
 var starfield = new starfield_1.Starfield(container, fps, minVelocity, maxVelocity, numOfStars);
 starfield.start();
 var space = document.getElementById('gamecontainer');
-var gameCanvas = document.createElement('canvas');
-// gameCanvas.width = 800;
-// gameCanvas.height = 600;
-gameCanvas.style.height = '100%';
-gameCanvas.style.width = '100%';
-//gameCanvas
-console.log('game offset width: ' + gameCanvas.width);
-console.log('game offset height: ' + gameCanvas.height);
-space.appendChild(gameCanvas);
-var game = new game_1.Game(new config_1.Config(), gameCanvas);
+var canvas = document.createElement('canvas');
+canvas.style.height = '100%';
+canvas.style.width = '100%';
+space.appendChild(canvas);
+var game = new game_1.Game(new config_1.Config(), canvas);
 game.start();
 //  Listen for keyboard events.
 window.addEventListener('keydown', function (e) { return game.keyDown(e); });
@@ -213,7 +208,7 @@ exports.Starfield = Starfield;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Config = /** @class */ (function () {
-    function Config(bombRate, bombMinVelocity, bombMaxVelocity, invaderInitialVelocity, invaderAcceleration, invaderDropDistance, rocketVelocity, rocketMaxFireRate, gameWidth, gameHeight, fps, debugMode, invaderRanks, invaderFiles, shipSpeed, levelDifficultyMultiplier, pointsPerInvader, limitLevelIncrease, lives) {
+    function Config(bombRate, bombMinVelocity, bombMaxVelocity, invaderInitialVelocity, invaderAcceleration, invaderDropDistance, rocketVelocity, rocketMaxFireRate, fps, debugMode, invaderRanks, invaderFiles, shipSpeed, levelDifficultyMultiplier, pointsPerInvader, limitLevelIncrease, lives) {
         if (bombRate === void 0) { bombRate = 0.05; }
         if (bombMinVelocity === void 0) { bombMinVelocity = 50; }
         if (bombMaxVelocity === void 0) { bombMaxVelocity = 50; }
@@ -222,8 +217,6 @@ var Config = /** @class */ (function () {
         if (invaderDropDistance === void 0) { invaderDropDistance = 20; }
         if (rocketVelocity === void 0) { rocketVelocity = 120; }
         if (rocketMaxFireRate === void 0) { rocketMaxFireRate = 2; }
-        if (gameWidth === void 0) { gameWidth = 400; }
-        if (gameHeight === void 0) { gameHeight = 300; }
         if (fps === void 0) { fps = 50; }
         if (debugMode === void 0) { debugMode = false; }
         if (invaderRanks === void 0) { invaderRanks = 5; }
@@ -241,8 +234,6 @@ var Config = /** @class */ (function () {
         this.invaderDropDistance = invaderDropDistance;
         this.rocketVelocity = rocketVelocity;
         this.rocketMaxFireRate = rocketMaxFireRate;
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
         this.fps = fps;
         this.debugMode = debugMode;
         this.invaderRanks = invaderRanks;
@@ -260,8 +251,6 @@ var Config = /** @class */ (function () {
         this.invaderDropDistance = invaderDropDistance;
         this.rocketVelocity = rocketVelocity;
         this.rocketMaxFireRate = rocketMaxFireRate;
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
         this.fps = fps;
         this.debugMode = debugMode;
         this.invaderRanks = invaderRanks;
@@ -301,6 +290,7 @@ var Game = /** @class */ (function () {
             top: 0,
             bottom: canvas.height,
         };
+        this.dt = 1 / this.config.fps;
         this.score = 0;
         this.level = 0;
         this.intervalId = null;
@@ -320,21 +310,24 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.loop = function () {
         //  Delta t is the time to update/draw.
-        var dt = 1 / this.config.fps;
         this.update();
         this.draw();
     };
     Game.prototype.update = function () {
+        var key = this.input.pop();
         switch (this.state.kind) {
             case 'Welcome':
-                var key = this.input.pop();
                 if (key === KEY_SPACE) {
                     this.state = { kind: 'Running' };
                 }
                 break;
-            case 'GameOver':
-                break;
             case 'Running':
+                if (key === KEY_LEFT) {
+                    this.ship.x -= this.config.shipSpeed * this.dt;
+                }
+                if (key === KEY_RIGHT) {
+                    this.ship.x += this.config.shipSpeed * this.dt;
+                }
                 break;
         }
     };

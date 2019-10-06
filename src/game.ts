@@ -45,9 +45,10 @@ export class Game {
     ctx: CanvasRenderingContext2D;
     input: Array<number>;
     ship: Ship;
+    dt: number
 
     constructor(
-        private config: Config,
+        public config: Config,
         canvas: HTMLCanvasElement
     ) {
         this.config = config;
@@ -61,7 +62,7 @@ export class Game {
             top: 0,
             bottom: canvas.height,
         };
-
+        this.dt = 1 / this.config.fps;
         this.score = 0;
         this.level = 0;
         this.intervalId = null;
@@ -81,22 +82,25 @@ export class Game {
 
     loop() {
         //  Delta t is the time to update/draw.
-        const dt = 1 / this.config.fps;
         this.update();
         this.draw();
     }
 
     update() {
+        const key = this.input.pop();
         switch (this.state.kind) {
             case 'Welcome':
-                const key = this.input.pop()
                 if (key === KEY_SPACE) {
                     this.state = { kind: 'Running' }
                 }
                 break;
-            case 'GameOver':
-                break;
             case 'Running':
+                if (key === KEY_LEFT) {
+                    this.ship.x -= this.config.shipSpeed * this.dt;
+                }
+                if (key === KEY_RIGHT) {
+                     this.ship.x += this.config.shipSpeed * this.dt;
+                }
                 break;
         }
     }
