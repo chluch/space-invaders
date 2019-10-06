@@ -88,26 +88,12 @@ export class Starfield {
     }
 
     draw() {
-        const ctx = this.canvas.getContext("2d");
-        ctx!.fillStyle = "#000000";
+        const ctx = this.canvas.getContext('2d');
+        ctx!.fillStyle = '#000000';
         ctx!.fillRect(0, 0, this.width, this.height);
-        ctx!.fillStyle = "#ffffff";
+        ctx!.fillStyle = '#ffffff';
         for (const star of this.stars) {
             ctx!.fillRect(star.x, star.y, star.size, star.size);
         }
     }
 }
-
-const container = document.getElementById('container');
-const fps = 60;
-const minVelocity = Math.random() * 30 + 5;
-const maxVelocity = Math.random() * 50 + minVelocity;
-const numOfStars = Math.random() * 200 + 50;
-const starfield = new Starfield(
-    container!,
-    fps,
-    minVelocity,
-    maxVelocity,
-    numOfStars
-);
-starfield.start();

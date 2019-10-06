@@ -8,8 +8,6 @@ export class Config {
         public invaderDropDistance: number = 20,
         public rocketVelocity: number = 120,
         public rocketMaxFireRate: number = 2,
-        public gameWidth: number = 400,
-        public gameHeight: number = 300,
         public fps: number = 50,
         public debugMode: boolean = false,
         public invaderRanks: number = 5,
@@ -28,8 +26,6 @@ export class Config {
         this.invaderDropDistance = invaderDropDistance;
         this.rocketVelocity = rocketVelocity;
         this.rocketMaxFireRate = rocketMaxFireRate;
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
         this.fps = fps;
         this.debugMode = debugMode;
         this.invaderRanks = invaderRanks;

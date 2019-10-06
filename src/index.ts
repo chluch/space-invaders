@@ -16,12 +16,13 @@ const starfield = new Starfield(
 );
 starfield.start();
 
-
 const space = document.getElementById('gamecontainer')!;
 const canvas = document.createElement('canvas')!;
+canvas.style.height = '100%';
+canvas.style.width = '100%';
 space.appendChild(canvas);
 let game = new Game(new Config(), canvas);
 game.start();
 
 //  Listen for keyboard events.
-window.addEventListener("keydown", (e) => game.keyDown(e));
+window.addEventListener('keydown', (e) => game.keyDown(e));
