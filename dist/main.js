@@ -107,9 +107,10 @@ canvas.style.height = '100%';
 canvas.style.width = '100%';
 space.appendChild(canvas);
 var game = new game_1.Game(new config_1.Config(), canvas);
-game.start();
+game.init();
 //  Listen for keyboard events.
 window.addEventListener('keydown', function (e) { return game.keyDown(e); });
+window.addEventListener('keyup', function (e) { return game.keyUp(e); });
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -208,15 +209,19 @@ exports.Starfield = Starfield;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Config = /** @class */ (function () {
-    function Config(bombRate, bombMinVelocity, bombMaxVelocity, invaderInitialVelocity, invaderAcceleration, invaderDropDistance, rocketVelocity, rocketMaxFireRate, fps, debugMode, invaderRanks, invaderFiles, shipSpeed, levelDifficultyMultiplier, pointsPerInvader, limitLevelIncrease, lives) {
+    function Config(bombRate, bombMinVelocity, bombMaxVelocity, invaderInitialVelocity, invaderCurrentVelocity, invaderCurrentDropDistance, invaderAcceleration, invaderDropDistance, invadersAreDropping, rocketVelocity, rocketMaxFireRate, lastRocketTime, fps, debugMode, invaderRanks, invaderFiles, shipSpeed, levelDifficultyMultiplier, pointsPerInvader, limitLevelIncrease, lives, score, level) {
         if (bombRate === void 0) { bombRate = 0.05; }
         if (bombMinVelocity === void 0) { bombMinVelocity = 50; }
         if (bombMaxVelocity === void 0) { bombMaxVelocity = 50; }
         if (invaderInitialVelocity === void 0) { invaderInitialVelocity = 25; }
+        if (invaderCurrentVelocity === void 0) { invaderCurrentVelocity = 10; }
+        if (invaderCurrentDropDistance === void 0) { invaderCurrentDropDistance = 0; }
         if (invaderAcceleration === void 0) { invaderAcceleration = 0; }
         if (invaderDropDistance === void 0) { invaderDropDistance = 20; }
+        if (invadersAreDropping === void 0) { invadersAreDropping = false; }
         if (rocketVelocity === void 0) { rocketVelocity = 120; }
         if (rocketMaxFireRate === void 0) { rocketMaxFireRate = 2; }
+        if (lastRocketTime === void 0) { lastRocketTime = null; }
         if (fps === void 0) { fps = 50; }
         if (debugMode === void 0) { debugMode = false; }
         if (invaderRanks === void 0) { invaderRanks = 5; }
@@ -226,14 +231,20 @@ var Config = /** @class */ (function () {
         if (pointsPerInvader === void 0) { pointsPerInvader = 5; }
         if (limitLevelIncrease === void 0) { limitLevelIncrease = 25; }
         if (lives === void 0) { lives = 3; }
+        if (score === void 0) { score = 0; }
+        if (level === void 0) { level = 1; }
         this.bombRate = bombRate;
         this.bombMinVelocity = bombMinVelocity;
         this.bombMaxVelocity = bombMaxVelocity;
         this.invaderInitialVelocity = invaderInitialVelocity;
+        this.invaderCurrentVelocity = invaderCurrentVelocity;
+        this.invaderCurrentDropDistance = invaderCurrentDropDistance;
         this.invaderAcceleration = invaderAcceleration;
         this.invaderDropDistance = invaderDropDistance;
+        this.invadersAreDropping = invadersAreDropping;
         this.rocketVelocity = rocketVelocity;
         this.rocketMaxFireRate = rocketMaxFireRate;
+        this.lastRocketTime = lastRocketTime;
         this.fps = fps;
         this.debugMode = debugMode;
         this.invaderRanks = invaderRanks;
@@ -243,14 +254,20 @@ var Config = /** @class */ (function () {
         this.pointsPerInvader = pointsPerInvader;
         this.limitLevelIncrease = limitLevelIncrease;
         this.lives = lives;
+        this.score = score;
+        this.level = level;
         this.bombRate = bombRate;
         this.bombMinVelocity = bombMinVelocity;
         this.bombMaxVelocity = bombMaxVelocity;
         this.invaderInitialVelocity = invaderInitialVelocity;
+        this.invaderCurrentVelocity = invaderCurrentVelocity;
+        this.invaderCurrentDropDistance = invaderCurrentDropDistance;
         this.invaderAcceleration = invaderAcceleration;
         this.invaderDropDistance = invaderDropDistance;
+        this.invadersAreDropping = invadersAreDropping;
         this.rocketVelocity = rocketVelocity;
         this.rocketMaxFireRate = rocketMaxFireRate;
+        this.lastRocketTime = lastRocketTime;
         this.fps = fps;
         this.debugMode = debugMode;
         this.invaderRanks = invaderRanks;
@@ -260,6 +277,8 @@ var Config = /** @class */ (function () {
         this.pointsPerInvader = pointsPerInvader;
         this.limitLevelIncrease = limitLevelIncrease;
         this.lives = lives;
+        this.score = score;
+        this.level = level;
     }
     return Config;
 }());
@@ -296,7 +315,7 @@ var Game = /** @class */ (function () {
         this.intervalId = null;
         this.state = { kind: 'Welcome' };
         this.ctx = this.canvas.getContext('2d');
-        this.input = [];
+        this.inputs = new Set();
         this.lastRocketTime = null;
         this.ship = {
             x: this.bounds.left + (this.bounds.right - this.bounds.left) / 2,
@@ -305,10 +324,43 @@ var Game = /** @class */ (function () {
             height: 16
         };
         this.rockets = [];
+        this.invaders = [];
     }
-    Game.prototype.start = function () {
+    Game.prototype.init = function () {
         var _this = this;
         this.intervalId = setInterval(function () { return _this.loop(); }, 1000 / this.config.fps);
+    };
+    Game.prototype.start = function () {
+        //  Setup initial state.
+        this.config.invaderCurrentVelocity = 10;
+        this.config.invaderCurrentDropDistance = 0;
+        this.config.invadersAreDropping = false;
+        //  Set the ship speed for this level, as well as invader params.
+        var levelMultiplier = this.level * this.config.levelDifficultyMultiplier;
+        var limitLevel = (this.level < this.config.limitLevelIncrease ? this.level : this.config.limitLevelIncrease);
+        this.config.shipSpeed = this.config.shipSpeed;
+        this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (levelMultiplier * this.config.invaderInitialVelocity);
+        this.config.bombRate = this.config.bombRate + (levelMultiplier * this.config.bombRate);
+        this.config.bombMinVelocity = this.config.bombMinVelocity + (levelMultiplier * this.config.bombMinVelocity);
+        this.config.bombMaxVelocity = this.config.bombMaxVelocity + (levelMultiplier * this.config.bombMaxVelocity);
+        this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * limitLevel;
+        //  Create the invaders.
+        var ranks = this.config.invaderRanks + 0.1 * limitLevel;
+        var files = this.config.invaderFiles + 0.2 * limitLevel;
+        var invaders = [];
+        //         for (var rank = 0; rank < ranks; rank++) {
+        //             for (var file = 0; file < files; file++) {
+        //                 invaders.push(new Invader(
+        //                     (this.width / 2) + ((files / 2 - file) * 200 / files),
+        //                     (this.bounds.top + rank * 20),
+        //                     rank, file, 'Invader'));
+        //             }
+        //         }
+        //         this.invaders = invaders;
+        //         this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
+        //         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
+        //         this.config.invaderNextVelocity = null;
+        //     };
     };
     Game.prototype.loop = function () {
         //  Delta t is the time to update/draw.
@@ -316,27 +368,26 @@ var Game = /** @class */ (function () {
         this.draw();
     };
     Game.prototype.update = function () {
-        var key = this.input.shift();
         switch (this.state.kind) {
             case 'Welcome':
-                if (key === KEY_SPACE) {
+                if (this.inputs.has(KEY_SPACE)) {
                     this.state = { kind: 'Running' };
                 }
                 break;
             case 'Running':
-                if (key === KEY_LEFT) {
+                if (this.inputs.has(KEY_LEFT)) {
                     var move = this.config.shipSpeed * this.dt;
                     if (this.ship.x - this.ship.width / 2 - move > this.bounds.left) {
                         this.ship.x -= move;
                     }
                 }
-                if (key === KEY_RIGHT) {
+                if (this.inputs.has(KEY_RIGHT)) {
                     var move = this.config.shipSpeed * this.dt;
                     if (this.ship.x + this.ship.width / 2 + move < this.bounds.right) {
                         this.ship.x += move;
                     }
                 }
-                if (key === KEY_SPACE) {
+                if (this.inputs.has(KEY_SPACE)) {
                     this.fireRocket();
                 }
                 this.moveRocket();
@@ -356,7 +407,7 @@ var Game = /** @class */ (function () {
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText('Space Invaders', this.width / 2, this.height / 2 - 40);
                 this.ctx.font = '14px Faster One';
-                this.ctx.fillText('Press "Space" or touch to start.', this.width / 2, this.height / 2);
+                this.ctx.fillText('Press "Space" to start.', this.width / 2, this.height / 2);
                 break;
             }
             case 'Running': {
@@ -366,9 +417,15 @@ var Game = /** @class */ (function () {
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
                 //draw rockets
                 this.ctx.fillStyle = '#ff0000';
-                for (var i = 0; i < this.rockets.length; i++) {
-                    var rocket = this.rockets[i];
+                for (var i_1 = 0; i_1 < this.rockets.length; i_1++) {
+                    var rocket = this.rockets[i_1];
                     this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
+                }
+                //draw invaders
+                this.ctx.fillStyle = '#006600';
+                for (var i = 0; i < this.invaders.length; i++) {
+                    var invader = this.invaders[i];
+                    this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
                 break;
             }
@@ -380,9 +437,13 @@ var Game = /** @class */ (function () {
     Game.prototype.keyDown = function (event) {
         var keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
         if (keys.indexOf(event.keyCode) !== -1) {
-            console.log(this);
-            console.log(this.input);
-            this.input.push(event.keyCode);
+            this.inputs.add(event.keyCode);
+        }
+    };
+    Game.prototype.keyUp = function (event) {
+        var keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
+        if (keys.indexOf(event.keyCode) !== -1) {
+            this.inputs.delete(event.keyCode);
         }
     };
     Game.prototype.fireRocket = function () {

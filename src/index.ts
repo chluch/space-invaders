@@ -22,7 +22,8 @@ canvas.style.height = '100%';
 canvas.style.width = '100%';
 space.appendChild(canvas);
 let game = new Game(new Config(), canvas);
-game.start();
+game.init();
 
 //  Listen for keyboard events.
 window.addEventListener('keydown', (e) => game.keyDown(e));
+window.addEventListener('keyup', (e) => game.keyUp(e));

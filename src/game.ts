@@ -1,4 +1,5 @@
 import { Config } from './config';
+import { Ship, Rocket, Invader } from './data';
 
 const KEY_SPACE = 32;
 const KEY_LEFT = 37;
@@ -18,19 +19,6 @@ interface Running {
 
 type State = GameOver | Welcome | Running;
 
-interface Ship {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-interface Rocket {
-    x: number;
-    y: number;
-    velocity: number
-}
-
 interface Bound {
     left: number;
     right: number;
@@ -49,9 +37,10 @@ export class Game {
     intervalId: number | null;
     state: State;
     ctx: CanvasRenderingContext2D;
-    input: Array<number>;
+    inputs: Set<number>;
     ship: Ship;
     rockets: Array<Rocket>;
+    invaders: Array<any>;
     dt: number;
     lastRocketTime: number | null;
 
@@ -76,7 +65,7 @@ export class Game {
         this.intervalId = null;
         this.state = { kind: 'Welcome' };
         this.ctx = this.canvas.getContext('2d')!;
-        this.input = [];
+        this.inputs = new Set();
         this.lastRocketTime = null;
         this.ship = {
             x: this.bounds.left + (this.bounds.right - this.bounds.left) / 2,
@@ -85,9 +74,46 @@ export class Game {
             height: 16
         }
         this.rockets = [];
+        this.invaders = [];
     }
-    start() {
+
+    init() {
         this.intervalId = setInterval(() => this.loop(), 1000 / this.config.fps);
+    }
+
+    start() {
+        //  Setup initial state.
+        this.config.invaderCurrentVelocity = 10;
+        this.config.invaderCurrentDropDistance = 0;
+        this.config.invadersAreDropping = false;
+        
+        //  Set the ship speed for this level, as well as invader params.
+        const levelMultiplier = this.level * this.config.levelDifficultyMultiplier;
+        const limitLevel = (this.level < this.config.limitLevelIncrease ? this.level : this.config.limitLevelIncrease);
+        this.config.shipSpeed = this.config.shipSpeed;
+        this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (levelMultiplier * this.config.invaderInitialVelocity);
+        this.config.bombRate = this.config.bombRate + (levelMultiplier * this.config.bombRate);
+        this.config.bombMinVelocity = this.config.bombMinVelocity + (levelMultiplier * this.config.bombMinVelocity);
+        this.config.bombMaxVelocity = this.config.bombMaxVelocity + (levelMultiplier * this.config.bombMaxVelocity);
+        this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * limitLevel;
+
+        //  Create the invaders.
+        const ranks = this.config.invaderRanks + 0.1 * limitLevel;
+        const files = this.config.invaderFiles + 0.2 * limitLevel;
+        const invaders = [];
+        //         for (var rank = 0; rank < ranks; rank++) {
+        //             for (var file = 0; file < files; file++) {
+        //                 invaders.push(new Invader(
+        //                     (this.width / 2) + ((files / 2 - file) * 200 / files),
+        //                     (this.bounds.top + rank * 20),
+        //                     rank, file, 'Invader'));
+        //             }
+        //         }
+        //         this.invaders = invaders;
+        //         this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
+        //         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
+        //         this.config.invaderNextVelocity = null;
+        //     };
     }
 
     loop() {
@@ -97,27 +123,26 @@ export class Game {
     }
 
     update() {
-        const key = this.input.shift();
         switch (this.state.kind) {
             case 'Welcome':
-                if (key === KEY_SPACE) {
+                if (this.inputs.has(KEY_SPACE)) {
                     this.state = { kind: 'Running' }
                 }
                 break;
             case 'Running':
-                if (key === KEY_LEFT) {
+                if (this.inputs.has(KEY_LEFT)) {
                     const move = this.config.shipSpeed * this.dt;
-                    if (this.ship.x - this.ship.width/2 - move > this.bounds.left) {
+                    if (this.ship.x - this.ship.width / 2 - move > this.bounds.left) {
                         this.ship.x -= move;
                     }
                 }
-                if (key === KEY_RIGHT) {
+                if (this.inputs.has(KEY_RIGHT)) {
                     const move = this.config.shipSpeed * this.dt;
-                    if (this.ship.x + this.ship.width/2 + move < this.bounds.right) {
+                    if (this.ship.x + this.ship.width / 2 + move < this.bounds.right) {
                         this.ship.x += move;
                     }
                 }
-                if (key === KEY_SPACE) {
+                if (this.inputs.has(KEY_SPACE)) {
                     this.fireRocket();
                 }
                 this.moveRocket();
@@ -138,7 +163,7 @@ export class Game {
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText('Space Invaders', this.width / 2, this.height / 2 - 40);
                 this.ctx.font = '14px Faster One';
-                this.ctx.fillText('Press "Space" or touch to start.', this.width / 2, this.height / 2);
+                this.ctx.fillText('Press "Space" to start.', this.width / 2, this.height / 2);
                 break;
             }
             case 'Running': {
@@ -155,6 +180,12 @@ export class Game {
                     this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
                 }
 
+                //draw invaders
+                this.ctx.fillStyle = '#006600';
+                for (var i = 0; i < this.invaders.length; i++) {
+                    const invader = this.invaders[i];
+                    this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
+                }
 
                 break;
             }
@@ -168,9 +199,14 @@ export class Game {
     keyDown(event: KeyboardEvent) {
         const keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
         if (keys.indexOf(event.keyCode) !== -1) {
-            console.log(this);
-            console.log(this.input);
-            this.input.push(event.keyCode);
+            this.inputs.add(event.keyCode);
+        }
+    }
+
+    keyUp(event: KeyboardEvent) {
+        const keys = [KEY_SPACE, KEY_LEFT, KEY_RIGHT];
+        if (keys.indexOf(event.keyCode) !== -1) {
+            this.inputs.delete(event.keyCode);
         }
     }
 
@@ -195,6 +231,7 @@ export class Game {
             this.rockets.shift();
         }
     }
+
 }
 
 
