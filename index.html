@@ -6,58 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link href="https://fonts.googleapis.com/css?family=Faster+One&display=swap" rel="stylesheet">
-
-    <title>Starfield</title>
-    <style>
-
-        /* Styling needed for a fullscreen canvas and no scrollbars. */
-        body,
-        html {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        #gamecontainer {
-
-            margin: auto;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-
-            max-width: 50%;
-            max-height: 50%;
-            overflow: auto;
-
-            height: 50%;
-            width: 50%;
-            border: 1px solid #009999;
-            padding: 10px;
-            text-align: center;
-
-        }
-
-        #container {
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            position: absolute;
-            left: 0px;
-            top: 0px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
+    <title>Starfield and TS Invaders</title>
 </head>
 
 <body>
-    <div id="gamecontainer">
-        <!-- <canvas id = "gameCanvas"></canvas> -->
+    <div class="wrapper">
+        <div id="gamecontainer">
+        </div>
     </div>
     <div id="container"></div>
-    <!-- <script src="build/src/starfield.js"></script> -->
     <script src="dist/main.js"></script>
 </body>
 
