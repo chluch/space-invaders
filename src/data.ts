@@ -15,7 +15,6 @@ export interface Invader {
     x: number;
     y: number;
     rank: number;
-    type: number;
     width: number;
     height: number;
 }

@@ -22,7 +22,9 @@ export class Config {
         public limitLevelIncrease: number = 25,
         public lives: number = 3,
         public score: number = 0,
-        public level: number = 1
+        public level: number = 1,
+        public limitLevel: number = (level < limitLevelIncrease ? level : limitLevelIncrease),
+        public levelMultiplier: number = level * levelDifficultyMultiplier
     ) {
         this.bombRate = bombRate;
         this.bombMinVelocity = bombMinVelocity;
@@ -47,5 +49,7 @@ export class Config {
         this.lives = lives;
         this.score = score;
         this.level = level;
+        this.limitLevel = (this.level < this.limitLevelIncrease ? this.level : this.limitLevelIncrease);
+        this.levelMultiplier = this.level * this.levelDifficultyMultiplier;
     }
 }

@@ -39,6 +39,7 @@ export class Game {
     ctx: CanvasRenderingContext2D;
     inputs: Set<number>;
     ship: Ship;
+    // invader: Invader;
     rockets: Array<Rocket>;
     invaders: Array<any>;
     dt: number;
@@ -73,6 +74,13 @@ export class Game {
             width: 20,
             height: 16
         }
+        // this.invader = {
+        //     x: 0,
+        //     y: 0,
+        //     rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
+        //     width: 18,
+        //     height: 14
+        // }
         this.rockets = [];
         this.invaders = [];
     }
@@ -86,35 +94,37 @@ export class Game {
         this.config.invaderCurrentVelocity = 10;
         this.config.invaderCurrentDropDistance = 0;
         this.config.invadersAreDropping = false;
-        
+
         //  Set the ship speed for this level, as well as invader params.
-        const levelMultiplier = this.level * this.config.levelDifficultyMultiplier;
-        const limitLevel = (this.level < this.config.limitLevelIncrease ? this.level : this.config.limitLevelIncrease);
-        this.config.shipSpeed = this.config.shipSpeed;
-        this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (levelMultiplier * this.config.invaderInitialVelocity);
-        this.config.bombRate = this.config.bombRate + (levelMultiplier * this.config.bombRate);
-        this.config.bombMinVelocity = this.config.bombMinVelocity + (levelMultiplier * this.config.bombMinVelocity);
-        this.config.bombMaxVelocity = this.config.bombMaxVelocity + (levelMultiplier * this.config.bombMaxVelocity);
-        this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * limitLevel;
+        this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (this.config.levelMultiplier * this.config.invaderInitialVelocity);
+        this.config.bombRate = this.config.bombRate + (this.config.levelMultiplier * this.config.bombRate);
+        this.config.bombMinVelocity = this.config.bombMinVelocity + (this.config.levelMultiplier * this.config.bombMinVelocity);
+        this.config.bombMaxVelocity = this.config.bombMaxVelocity + (this.config.levelMultiplier * this.config.bombMaxVelocity);
+        this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * this.config.limitLevel;
 
         //  Create the invaders.
-        const ranks = this.config.invaderRanks + 0.1 * limitLevel;
-        const files = this.config.invaderFiles + 0.2 * limitLevel;
-        const invaders = [];
-        //         for (var rank = 0; rank < ranks; rank++) {
-        //             for (var file = 0; file < files; file++) {
-        //                 invaders.push(new Invader(
-        //                     (this.width / 2) + ((files / 2 - file) * 200 / files),
-        //                     (this.bounds.top + rank * 20),
-        //                     rank, file, 'Invader'));
-        //             }
-        //         }
-        //         this.invaders = invaders;
-        //         this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
-        //         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
-        //         this.config.invaderNextVelocity = null;
-        //     };
+
+        const ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
+        const files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
+        this.invaders = [];
+        for (var rank = 0; rank < ranks; rank++) {
+            for (var file = 0; file < files; file++) {
+                const invader: Invader = {
+                    x: (this.width / 2) + ((files / 2 - file) * 200 / files),
+                    y: (this.bounds.top + rank * 20),
+                    rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
+                    width: 18,
+                    height: 14
+                }
+                this.invaders.push(invader);
+            }
+        }
     }
+    //         this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
+    //         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
+    //         this.config.invaderNextVelocity = null;
+    //     };
+
 
     loop() {
         //  Delta t is the time to update/draw.
