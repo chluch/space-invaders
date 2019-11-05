@@ -361,11 +361,12 @@ var Game = /** @class */ (function () {
         for (var rank = 0; rank < ranks; rank++) {
             for (var file = 0; file < files; file++) {
                 var invader = {
-                    x: (this.width / 2) + ((files / 2 - file) * 200 / files),
-                    y: (this.bounds.top + rank * 20),
+                    x: (this.width / 2) + ((files / 2 - file) * 150 / files),
+                    y: (this.bounds.top + rank * 10),
                     rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
-                    width: 18,
-                    height: 14
+                    file: this.config.invaderFiles + 0.2 * this.config.limitLevel,
+                    width: 10,
+                    height: 6
                 };
                 this.invaders.push(invader);
             }
@@ -385,6 +386,7 @@ var Game = /** @class */ (function () {
             case 'Welcome':
                 if (this.inputs.has(KEY_SPACE)) {
                     this.state = { kind: 'Running' };
+                    this.start();
                 }
                 break;
             case 'Running':
@@ -411,9 +413,6 @@ var Game = /** @class */ (function () {
         switch (this.state.kind) {
             case 'Welcome': {
                 this.ctx.clearRect(0, 0, this.width, this.height);
-                console.log("bounds: " + this.bounds);
-                console.log('width: ' + this.width);
-                console.log('height: ' + this.height);
                 this.ctx.font = '30px Faster One';
                 this.ctx.fillStyle = '#ffffff';
                 this.ctx.textBaseline = 'middle';
@@ -430,14 +429,16 @@ var Game = /** @class */ (function () {
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
                 //draw rockets
                 this.ctx.fillStyle = '#ff0000';
-                for (var i_1 = 0; i_1 < this.rockets.length; i_1++) {
-                    var rocket = this.rockets[i_1];
+                for (var i = 0; i < this.rockets.length; i++) {
+                    var rocket = this.rockets[i];
                     this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
                 }
                 //draw invaders
                 this.ctx.fillStyle = '#006600';
                 for (var i = 0; i < this.invaders.length; i++) {
                     var invader = this.invaders[i];
+                    console.log('invaderrrr');
+                    console.log(invader);
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
                 break;

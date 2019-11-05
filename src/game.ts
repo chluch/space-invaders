@@ -41,7 +41,7 @@ export class Game {
     ship: Ship;
     // invader: Invader;
     rockets: Array<Rocket>;
-    invaders: Array<any>;
+    invaders: Array<Invader>;
     dt: number;
     lastRocketTime: number | null;
 
@@ -107,14 +107,15 @@ export class Game {
         const ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
         const files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
         this.invaders = [];
-        for (var rank = 0; rank < ranks; rank++) {
-            for (var file = 0; file < files; file++) {
+        for (let rank = 0; rank < ranks; rank++) {
+            for (let file = 0; file < files; file++) {
                 const invader: Invader = {
-                    x: (this.width / 2) + ((files / 2 - file) * 200 / files),
-                    y: (this.bounds.top + rank * 20),
+                    x: (this.width / 2) + ((files / 2 - file) * 150 / files),
+                    y: (this.bounds.top + rank * 10),
                     rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
-                    width: 18,
-                    height: 14
+                    file: this.config.invaderFiles + 0.2 * this.config.limitLevel,
+                    width: 10,
+                    height: 6
                 }
                 this.invaders.push(invader);
             }
@@ -137,6 +138,7 @@ export class Game {
             case 'Welcome':
                 if (this.inputs.has(KEY_SPACE)) {
                     this.state = { kind: 'Running' }
+                    this.start();
                 }
                 break;
             case 'Running':
@@ -164,9 +166,6 @@ export class Game {
         switch (this.state.kind) {
             case 'Welcome': {
                 this.ctx.clearRect(0, 0, this.width, this.height);
-                console.log(`bounds: ${this.bounds}`);
-                console.log('width: ' + this.width);
-                console.log('height: ' + this.height);
                 this.ctx.font = '30px Faster One';
                 this.ctx.fillStyle = '#ffffff';
                 this.ctx.textBaseline = 'middle';
@@ -192,8 +191,10 @@ export class Game {
 
                 //draw invaders
                 this.ctx.fillStyle = '#006600';
-                for (var i = 0; i < this.invaders.length; i++) {
+                for (let i = 0; i < this.invaders.length; i++) {
                     const invader = this.invaders[i];
+                    console.log('invaderrrr');
+                    console.log(invader);
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
 
