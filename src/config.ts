@@ -6,6 +6,8 @@ export class Config {
         public invaderInitialVelocity: number = 25,
         public invaderCurrentVelocity: number = 10,
         public invaderCurrentDropDistance =  0,
+        public invaderVelocity: {x: number, y:number} = {x: -invaderInitialVelocity, y: 0},
+        public invaderNextVelocity: number | null = null,
         public invaderAcceleration: number = 0,
         public invaderDropDistance: number = 20,
         public invadersAreDropping: boolean = false,
@@ -24,7 +26,7 @@ export class Config {
         public score: number = 0,
         public level: number = 1,
         public limitLevel: number = (level < limitLevelIncrease ? level : limitLevelIncrease),
-        public levelMultiplier: number = level * levelDifficultyMultiplier
+        public levelMultiplier: number = level * levelDifficultyMultiplier,
     ) {
         this.bombRate = bombRate;
         this.bombMinVelocity = bombMinVelocity;
@@ -49,7 +51,7 @@ export class Config {
         this.lives = lives;
         this.score = score;
         this.level = level;
-        this.limitLevel = (this.level < this.limitLevelIncrease ? this.level : this.limitLevelIncrease);
-        this.levelMultiplier = this.level * this.levelDifficultyMultiplier;
+        this.limitLevel = limitLevel;
+        this.levelMultiplier = levelMultiplier;
     }
 }

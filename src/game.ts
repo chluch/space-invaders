@@ -74,13 +74,6 @@ export class Game {
             width: 20,
             height: 16
         }
-        // this.invader = {
-        //     x: 0,
-        //     y: 0,
-        //     rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
-        //     width: 18,
-        //     height: 14
-        // }
         this.rockets = [];
         this.invaders = [];
     }
@@ -90,20 +83,17 @@ export class Game {
     }
 
     start() {
-        //  Setup initial state.
-        this.config.invaderCurrentVelocity = 10;
-        this.config.invaderCurrentDropDistance = 0;
-        this.config.invadersAreDropping = false;
-
         //  Set the ship speed for this level, as well as invader params.
         this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (this.config.levelMultiplier * this.config.invaderInitialVelocity);
         this.config.bombRate = this.config.bombRate + (this.config.levelMultiplier * this.config.bombRate);
         this.config.bombMinVelocity = this.config.bombMinVelocity + (this.config.levelMultiplier * this.config.bombMinVelocity);
         this.config.bombMaxVelocity = this.config.bombMaxVelocity + (this.config.levelMultiplier * this.config.bombMaxVelocity);
         this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * this.config.limitLevel;
+        this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
+        this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
+        this.config.invaderNextVelocity = null;
 
         //  Create the invaders.
-
         const ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
         const files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
         this.invaders = [];
@@ -121,10 +111,6 @@ export class Game {
             }
         }
     }
-    //         this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
-    //         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
-    //         this.config.invaderNextVelocity = null;
-    //     };
 
 
     loop() {
@@ -158,6 +144,7 @@ export class Game {
                     this.fireRocket();
                 }
                 this.moveRocket();
+                this.moveInvaders();
                 break;
         }
     }
@@ -180,6 +167,10 @@ export class Game {
 
                 //draw spaceship
                 this.ctx.fillStyle = '#ffffff';
+                // this.ctx.shadowColor = '#00cccc';
+                // this.ctx.shadowOffsetX = 0;
+                // this.ctx.shadowOffsetY = 0;
+                // this.ctx.shadowBlur = 5;
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
 
                 //draw rockets
@@ -190,11 +181,9 @@ export class Game {
                 }
 
                 //draw invaders
-                this.ctx.fillStyle = '#006600';
+                this.ctx.fillStyle = '#009999';
                 for (let i = 0; i < this.invaders.length; i++) {
                     const invader = this.invaders[i];
-                    console.log('invaderrrr');
-                    console.log(invader);
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
 
@@ -240,6 +229,29 @@ export class Game {
         }
         if (this.rockets.length > 0 && this.rockets[0].y < 0) {
             this.rockets.shift();
+        }
+    }
+
+    moveInvaders() {
+        let hitLeft = false, hitRight = false, hitBottom = false;
+        for (let i = 0; i < this.invaders.length; i++) {
+            let invader = this.invaders[i];
+            let newx = invader.x + this.config.invaderVelocity.x * this.dt;
+            let newy = invader.y + this.config.invaderVelocity.y * this.dt;
+            if (hitLeft == false && newx < this.bounds.left) {
+                hitLeft = true;
+            }
+            else if (hitRight == false && newx > this.bounds.right) {
+                hitRight = true;
+            }
+            else if (hitBottom == false && newy > this.bounds.bottom) {
+                hitBottom = true;
+            }
+
+            if (!hitLeft && !hitRight && !hitBottom) {
+                invader.x = newx;
+                invader.y = newy;
+            }
         }
     }
 
