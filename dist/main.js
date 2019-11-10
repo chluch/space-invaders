@@ -421,7 +421,7 @@ var Game = /** @class */ (function () {
                 this.ctx.fillStyle = '#ffffff';
                 // this.ctx.shadowColor = '#00cccc';
                 // this.ctx.shadowOffsetX = 0;
-                // this.ctx.shadowOffsetY = 0;
+                // this.ctx.shadowOffsetY = 0;\
                 // this.ctx.shadowBlur = 5;
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
                 //draw rockets
@@ -495,6 +495,33 @@ var Game = /** @class */ (function () {
                 invader.x = newx;
                 invader.y = newy;
             }
+        }
+        //  Update invader velocities.
+        if (this.config.invadersAreDropping) {
+            this.config.invaderCurrentDropDistance += this.config.invaderVelocity.y * this.dt;
+            if (this.config.invaderCurrentDropDistance >= this.config.invaderDropDistance) {
+                this.config.invadersAreDropping = false;
+                this.config.invaderVelocity = this.config.invaderNextVelocity;
+                this.config.invaderCurrentDropDistance = 0;
+            }
+        }
+        //  If we've hit the left, move down then right.
+        if (hitLeft) {
+            this.config.invaderCurrentVelocity += this.config.invaderAcceleration;
+            this.config.invaderVelocity = { x: 0, y: this.config.invaderCurrentVelocity };
+            this.config.invadersAreDropping = true;
+            this.config.invaderNextVelocity = { x: this.config.invaderCurrentVelocity, y: 0 };
+        }
+        //  If we've hit the right, move down then left.
+        if (hitRight) {
+            this.config.invaderCurrentVelocity += this.config.invaderAcceleration;
+            this.config.invaderVelocity = { x: 0, y: this.config.invaderCurrentVelocity };
+            this.config.invadersAreDropping = true;
+            this.config.invaderNextVelocity = { x: -this.config.invaderCurrentVelocity, y: 0 };
+        }
+        //  If we've hit the bottom, it's game over.
+        if (hitBottom) {
+            this.config.lives = 0;
         }
     };
     return Game;

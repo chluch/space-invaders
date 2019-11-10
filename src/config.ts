@@ -5,9 +5,9 @@ export class Config {
         public bombMaxVelocity: number = 50,
         public invaderInitialVelocity: number = 25,
         public invaderCurrentVelocity: number = 10,
-        public invaderCurrentDropDistance =  0,
-        public invaderVelocity: {x: number, y:number} = {x: -invaderInitialVelocity, y: 0},
-        public invaderNextVelocity: number | null = null,
+        public invaderCurrentDropDistance = 0,
+        public invaderVelocity: { x: number, y: number } | null = { x: -invaderInitialVelocity, y: 0 },
+        public invaderNextVelocity: { x: number, y: number } | null = null,
         public invaderAcceleration: number = 0,
         public invaderDropDistance: number = 20,
         public invadersAreDropping: boolean = false,
@@ -33,7 +33,7 @@ export class Config {
         this.bombMaxVelocity = bombMaxVelocity;
         this.invaderInitialVelocity = invaderInitialVelocity;
         this.invaderCurrentVelocity = invaderCurrentVelocity;
-        this.invaderCurrentDropDistance =  invaderCurrentDropDistance;
+        this.invaderCurrentDropDistance = invaderCurrentDropDistance;
         this.invaderAcceleration = invaderAcceleration;
         this.invaderDropDistance = invaderDropDistance;
         this.invadersAreDropping = invadersAreDropping;
