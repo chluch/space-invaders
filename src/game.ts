@@ -100,8 +100,8 @@ export class Game {
         for (let rank = 0; rank < ranks; rank++) {
             for (let file = 0; file < files; file++) {
                 const invader: Invader = {
-                    x: (this.width / 2) + ((files / 2 - file) * 150 / files),
-                    y: (this.bounds.top + rank * 10),
+                    x: (this.width / 2) + ((files / 2 - file) * 100 / files),
+                    y: (this.bounds.top + rank * 10) + 3,
                     rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
                     file: this.config.invaderFiles + 0.2 * this.config.limitLevel,
                     width: 10,
@@ -167,14 +167,13 @@ export class Game {
 
                 //draw spaceship
                 this.ctx.fillStyle = '#ffffff';
-                // this.ctx.shadowColor = '#00cccc';
-                // this.ctx.shadowOffsetX = 0;
-                // this.ctx.shadowOffsetY = 0;\
-                // this.ctx.shadowBlur = 5;
+                this.ctx.shadowColor = '#00cccc';
+                this.ctx.shadowBlur = 5;
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
 
                 //draw rockets
                 this.ctx.fillStyle = '#ff0000';
+                this.ctx.shadowBlur = 0;
                 for (let i = 0; i < this.rockets.length; i++) {
                     const rocket = this.rockets[i];
                     this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
@@ -238,10 +237,10 @@ export class Game {
             let invader = this.invaders[i];
             let newx = invader.x + this.config.invaderVelocity!.x * this.dt;
             let newy = invader.y + this.config.invaderVelocity!.y * this.dt;
-            if (hitLeft == false && newx < this.bounds.left) {
+            if (hitLeft == false && newx < (this.bounds.left + invader.width / 2)) {
                 hitLeft = true;
             }
-            else if (hitRight == false && newx > this.bounds.right) {
+            else if (hitRight == false && newx > (this.bounds.right - invader.width / 2)) {
                 hitRight = true;
             }
             else if (hitBottom == false && newy > this.bounds.bottom) {

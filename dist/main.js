@@ -226,8 +226,8 @@ var Config = /** @class */ (function () {
         if (lastRocketTime === void 0) { lastRocketTime = null; }
         if (fps === void 0) { fps = 50; }
         if (debugMode === void 0) { debugMode = false; }
-        if (invaderRanks === void 0) { invaderRanks = 5; }
-        if (invaderFiles === void 0) { invaderFiles = 10; }
+        if (invaderRanks === void 0) { invaderRanks = 4; }
+        if (invaderFiles === void 0) { invaderFiles = 6; }
         if (shipSpeed === void 0) { shipSpeed = 400; }
         if (levelDifficultyMultiplier === void 0) { levelDifficultyMultiplier = 0.2; }
         if (pointsPerInvader === void 0) { pointsPerInvader = 5; }
@@ -357,8 +357,8 @@ var Game = /** @class */ (function () {
         for (var rank = 0; rank < ranks; rank++) {
             for (var file = 0; file < files; file++) {
                 var invader = {
-                    x: (this.width / 2) + ((files / 2 - file) * 150 / files),
-                    y: (this.bounds.top + rank * 10),
+                    x: (this.width / 2) + ((files / 2 - file) * 100 / files),
+                    y: (this.bounds.top + rank * 10) + 3,
                     rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
                     file: this.config.invaderFiles + 0.2 * this.config.limitLevel,
                     width: 10,
@@ -419,13 +419,14 @@ var Game = /** @class */ (function () {
                 this.ctx.clearRect(0, 0, this.width, this.height);
                 //draw spaceship
                 this.ctx.fillStyle = '#ffffff';
-                // this.ctx.shadowColor = '#00cccc';
+                this.ctx.shadowColor = '#00cccc';
                 // this.ctx.shadowOffsetX = 0;
-                // this.ctx.shadowOffsetY = 0;\
-                // this.ctx.shadowBlur = 5;
+                // this.ctx.shadowOffsetY = 0;
+                this.ctx.shadowBlur = 5;
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
                 //draw rockets
                 this.ctx.fillStyle = '#ff0000';
+                this.ctx.shadowBlur = 0;
                 for (var i = 0; i < this.rockets.length; i++) {
                     var rocket = this.rockets[i];
                     this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
@@ -482,10 +483,10 @@ var Game = /** @class */ (function () {
             var invader = this.invaders[i];
             var newx = invader.x + this.config.invaderVelocity.x * this.dt;
             var newy = invader.y + this.config.invaderVelocity.y * this.dt;
-            if (hitLeft == false && newx < this.bounds.left) {
+            if (hitLeft == false && newx < (this.bounds.left + invader.width / 2)) {
                 hitLeft = true;
             }
-            else if (hitRight == false && newx > this.bounds.right) {
+            else if (hitRight == false && newx > (this.bounds.right - invader.width / 2)) {
                 hitRight = true;
             }
             else if (hitBottom == false && newy > this.bounds.bottom) {
