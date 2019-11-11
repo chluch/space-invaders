@@ -19,3 +19,9 @@ export interface Invader {
     width: number;
     height: number;
 }
+
+export interface Bomb {
+    x: number;
+    y: number;
+    velocity: number;
+}

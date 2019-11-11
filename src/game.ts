@@ -1,5 +1,5 @@
 import { Config } from './config';
-import { Ship, Rocket, Invader } from './data';
+import { Ship, Rocket, Invader, Bomb } from './data';
 
 const KEY_SPACE = 32;
 const KEY_LEFT = 37;
@@ -39,11 +39,12 @@ export class Game {
     ctx: CanvasRenderingContext2D;
     inputs: Set<number>;
     ship: Ship;
-    // invader: Invader;
     rockets: Array<Rocket>;
     invaders: Array<Invader>;
     dt: number;
     lastRocketTime: number | null;
+    bombs: Array<Bomb>;
+    frontRankInvaders: any;
 
     constructor(
         public config: Config,
@@ -76,6 +77,8 @@ export class Game {
         }
         this.rockets = [];
         this.invaders = [];
+        this.bombs = [];
+        this.frontRankInvaders = {};
     }
 
     init() {
@@ -145,9 +148,13 @@ export class Game {
                 }
                 this.moveRocket();
                 this.moveInvaders();
+                this.checkRICollision();
+                this.checkFrontRank();
+                this.dropBomb();
                 break;
         }
     }
+
 
     draw() {
         switch (this.state.kind) {
@@ -185,6 +192,14 @@ export class Game {
                     const invader = this.invaders[i];
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
+
+                //  Draw bombs.
+                this.ctx.fillStyle = '#ff5555';
+                for (let i = 0; i < this.bombs.length; i++) {
+                    const bomb = this.bombs[i];
+                    this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
+                }
+
 
                 break;
             }
@@ -281,8 +296,63 @@ export class Game {
         }
     }
 
+    //  Check for rocket/invader collisions.
+    checkRICollision() {
+        for (let i = 0; i < this.invaders.length; i++) {
+            const invader = this.invaders[i];
+            let bang = false;
+
+            for (let j = 0; j < this.rockets.length; j++) {
+                const rocket = this.rockets[j];
+
+                if (rocket.x >= (invader.x - invader.width / 2) && rocket.x <= (invader.x + invader.width / 2) &&
+                    rocket.y >= (invader.y - invader.height / 2) && rocket.y <= (invader.y + invader.height / 2)) {
+
+                    //  Remove the rocket, set 'bang' so we don't process
+                    //  this rocket again.
+                    this.rockets.splice(j--, 1);
+                    bang = true;
+                    this.config.score += this.config.pointsPerInvader;
+                    break;
+                }
+            }
+            if (bang) {
+                this.invaders.splice(i--, 1);
+            }
+        }
+    }
+
+    //  Find all of the front rank invaders.
+    checkFrontRank() {
+        for (let i = 0; i < this.invaders.length; i++) {
+            const invader = this.invaders[i];
+            //  If we have no invader for game file, or the invader
+            //  for game file is futher behind, set the front
+            //  rank invader to game one.
+            if (!this.frontRankInvaders[invader.file] || this.frontRankInvaders[invader.file].rank < invader.rank) {
+                this.frontRankInvaders[invader.file] = invader;
+            }
+        }
+    }
+
+    dropBomb() {    
+        for (let i = 0; i < this.config.invaderFiles; i++) {
+            const invader = this.frontRankInvaders[i];
+            if (!invader) continue;
+            const chance = this.config.bombRate * this.dt;
+            if (chance > Math.random()) {
+                const bomb: Bomb = {
+                    x: invader.x,
+                    y: invader.y + invader.height / 2,
+                    velocity: this.config.bombMinVelocity + Math.random() * (this.config.bombMaxVelocity - this.config.bombMinVelocity)
+                };
+                //  Fire!
+                this.bombs.push(bomb);
+                console.log(this.bombs);
+                console.log("Is this the bomb");
+            }
+        }
+
+    }
+
 }
-
-
-
-

@@ -335,6 +335,8 @@ var Game = /** @class */ (function () {
         };
         this.rockets = [];
         this.invaders = [];
+        this.bombs = [];
+        this.frontRankInvaders = {};
     }
     Game.prototype.init = function () {
         var _this = this;
@@ -399,6 +401,9 @@ var Game = /** @class */ (function () {
                 }
                 this.moveRocket();
                 this.moveInvaders();
+                this.checkRICollision();
+                this.checkFrontRank();
+                this.dropBomb();
                 break;
         }
     };
@@ -420,8 +425,6 @@ var Game = /** @class */ (function () {
                 //draw spaceship
                 this.ctx.fillStyle = '#ffffff';
                 this.ctx.shadowColor = '#00cccc';
-                // this.ctx.shadowOffsetX = 0;
-                // this.ctx.shadowOffsetY = 0;
                 this.ctx.shadowBlur = 5;
                 this.ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
                 //draw rockets
@@ -436,6 +439,12 @@ var Game = /** @class */ (function () {
                 for (var i = 0; i < this.invaders.length; i++) {
                     var invader = this.invaders[i];
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
+                }
+                //  Draw bombs.
+                this.ctx.fillStyle = '#ff5555';
+                for (var i = 0; i < this.bombs.length; i++) {
+                    var bomb = this.bombs[i];
+                    this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
                 }
                 break;
             }
@@ -523,6 +532,60 @@ var Game = /** @class */ (function () {
         //  If we've hit the bottom, it's game over.
         if (hitBottom) {
             this.config.lives = 0;
+        }
+    };
+    //  Check for rocket/invader collisions.
+    Game.prototype.checkRICollision = function () {
+        for (var i = 0; i < this.invaders.length; i++) {
+            var invader = this.invaders[i];
+            var bang = false;
+            for (var j = 0; j < this.rockets.length; j++) {
+                var rocket = this.rockets[j];
+                if (rocket.x >= (invader.x - invader.width / 2) && rocket.x <= (invader.x + invader.width / 2) &&
+                    rocket.y >= (invader.y - invader.height / 2) && rocket.y <= (invader.y + invader.height / 2)) {
+                    //  Remove the rocket, set 'bang' so we don't process
+                    //  this rocket again.
+                    this.rockets.splice(j--, 1);
+                    bang = true;
+                    this.config.score += this.config.pointsPerInvader;
+                    break;
+                }
+            }
+            if (bang) {
+                this.invaders.splice(i--, 1);
+            }
+        }
+    };
+    //  Find all of the front rank invaders.
+    Game.prototype.checkFrontRank = function () {
+        for (var i = 0; i < this.invaders.length; i++) {
+            var invader = this.invaders[i];
+            //  If we have no invader for game file, or the invader
+            //  for game file is futher behind, set the front
+            //  rank invader to game one.
+            if (!this.frontRankInvaders[invader.file] || this.frontRankInvaders[invader.file].rank < invader.rank) {
+                this.frontRankInvaders[invader.file] = invader;
+            }
+        }
+    };
+    Game.prototype.dropBomb = function () {
+        for (var i = 0; i < this.config.invaderFiles; i++) {
+            var invader = this.frontRankInvaders[i];
+            console.log(invader);
+            if (!invader)
+                continue;
+            var chance = this.config.bombRate * this.dt;
+            if (chance > Math.random()) {
+                var bomb = {
+                    x: invader.x,
+                    y: invader.y + invader.height / 2,
+                    velocity: this.config.bombMinVelocity + Math.random() * (this.config.bombMaxVelocity - this.config.bombMinVelocity)
+                };
+                //  Fire!
+                this.bombs.push(bomb);
+                console.log(this.bombs);
+                console.log("Is this the bomb");
+            }
         }
     };
     return Game;
