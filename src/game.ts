@@ -44,7 +44,9 @@ export class Game {
     dt: number;
     lastRocketTime: number | null;
     bombs: Array<Bomb>;
-    frontRankInvaders: any;
+    frontRankInvaders: Map<number, Invader>;
+    ranks: number;
+    files: number
 
     constructor(
         public config: Config,
@@ -78,7 +80,10 @@ export class Game {
         this.rockets = [];
         this.invaders = [];
         this.bombs = [];
-        this.frontRankInvaders = {};
+        this.frontRankInvaders = new Map();
+        this.ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
+        this.files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
+
     }
 
     init() {
@@ -97,16 +102,14 @@ export class Game {
         this.config.invaderNextVelocity = null;
 
         //  Create the invaders.
-        const ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
-        const files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
         this.invaders = [];
-        for (let rank = 0; rank < ranks; rank++) {
-            for (let file = 0; file < files; file++) {
+        for (let rank = 0; rank < this.ranks; rank++) {
+            for (let file = 0; file < this.files; file++) {
                 const invader: Invader = {
-                    x: (this.width / 2) + ((files / 2 - file) * 100 / files),
+                    x: (this.width / 2) + ((this.files / 2 - file) * 100 / this.files),
                     y: (this.bounds.top + rank * 10) + 3,
-                    rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
-                    file: this.config.invaderFiles + 0.2 * this.config.limitLevel,
+                    rank: rank,
+                    file: file,
                     width: 10,
                     height: 6
                 }
@@ -199,6 +202,7 @@ export class Game {
                     const bomb = this.bombs[i];
                     this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
                 }
+
 
 
                 break;
@@ -322,26 +326,43 @@ export class Game {
         }
     }
 
-    //  Find all of the front rank invaders.
+
     checkFrontRank() {
-        for (let i = 0; i < this.invaders.length; i++) {
-            const invader = this.invaders[i];
-            //  If we have no invader for game file, or the invader
-            //  for game file is futher behind, set the front
-            //  rank invader to game one.
-            if (!this.frontRankInvaders[invader.file] || this.frontRankInvaders[invader.file].rank < invader.rank) {
-                this.frontRankInvaders[invader.file] = invader;
+        for (let i = 0; i < this.files; i++) {
+            const filteredFiles = this.invaders.filter(invader => invader.file === i);
+            if (filteredFiles.length === 0) {
+                this.frontRankInvaders.delete(i);
+            }
+            else {
+                const maxRank = filteredFiles.reduce((invader1, invader2) => {
+                    if (invader1.rank > invader2.rank) {
+                        return invader1;
+                    }
+                    return invader2;
+                })
+                this.frontRankInvaders.set(i, maxRank);
             }
         }
     }
 
-    dropBomb() {    
+    dropBomb() {
+        // console.log(this.frontRankInvaders);
+        const chance: number = this.config.bombRate * this.dt;
+        for (const bomb of this.bombs) {
+            bomb.y += this.dt * bomb.velocity;
+        }
         for (let i = 0; i < this.config.invaderFiles; i++) {
-            const invader = this.frontRankInvaders[i];
-            if (!invader) continue;
-            const chance = this.config.bombRate * this.dt;
+            const invader = this.frontRankInvaders.get(i);
+            console.log(chance);
+            console.log(Math.random());
+            console.log(this.frontRankInvaders);
+            if (invader === undefined) {
+                console.log("!Invader is working")
+                continue;
+            }
             if (chance > Math.random()) {
-                const bomb: Bomb = {
+                console.log("In Bomb Drop")
+                let bomb: Bomb = {
                     x: invader.x,
                     y: invader.y + invader.height / 2,
                     velocity: this.config.bombMinVelocity + Math.random() * (this.config.bombMaxVelocity - this.config.bombMinVelocity)

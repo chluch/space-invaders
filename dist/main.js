@@ -336,7 +336,9 @@ var Game = /** @class */ (function () {
         this.rockets = [];
         this.invaders = [];
         this.bombs = [];
-        this.frontRankInvaders = {};
+        this.frontRankInvaders = new Map();
+        this.ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
+        this.files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
     }
     Game.prototype.init = function () {
         var _this = this;
@@ -353,16 +355,14 @@ var Game = /** @class */ (function () {
         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
         this.config.invaderNextVelocity = null;
         //  Create the invaders.
-        var ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
-        var files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
         this.invaders = [];
-        for (var rank = 0; rank < ranks; rank++) {
-            for (var file = 0; file < files; file++) {
+        for (var rank = 0; rank < this.ranks; rank++) {
+            for (var file = 0; file < this.files; file++) {
                 var invader = {
-                    x: (this.width / 2) + ((files / 2 - file) * 100 / files),
+                    x: (this.width / 2) + ((this.files / 2 - file) * 100 / this.files),
                     y: (this.bounds.top + rank * 10) + 3,
-                    rank: this.config.invaderRanks + 0.1 * this.config.limitLevel,
-                    file: this.config.invaderFiles + 0.2 * this.config.limitLevel,
+                    rank: rank,
+                    file: file,
                     width: 10,
                     height: 6
                 };
@@ -556,26 +556,45 @@ var Game = /** @class */ (function () {
             }
         }
     };
-    //  Find all of the front rank invaders.
     Game.prototype.checkFrontRank = function () {
-        for (var i = 0; i < this.invaders.length; i++) {
-            var invader = this.invaders[i];
-            //  If we have no invader for game file, or the invader
-            //  for game file is futher behind, set the front
-            //  rank invader to game one.
-            if (!this.frontRankInvaders[invader.file] || this.frontRankInvaders[invader.file].rank < invader.rank) {
-                this.frontRankInvaders[invader.file] = invader;
+        var _loop_1 = function (i) {
+            var filteredFiles = this_1.invaders.filter(function (invader) { return invader.file === i; });
+            if (filteredFiles.length === 0) {
+                this_1.frontRankInvaders.delete(i);
             }
+            else {
+                var maxRank = filteredFiles.reduce(function (invader1, invader2) {
+                    if (invader1.rank > invader2.rank) {
+                        return invader1;
+                    }
+                    return invader2;
+                });
+                this_1.frontRankInvaders.set(i, maxRank);
+            }
+        };
+        var this_1 = this;
+        for (var i = 0; i < this.files; i++) {
+            _loop_1(i);
         }
     };
     Game.prototype.dropBomb = function () {
+        // console.log(this.frontRankInvaders);
+        var chance = this.config.bombRate * this.dt;
+        for (var _i = 0, _a = this.bombs; _i < _a.length; _i++) {
+            var bomb = _a[_i];
+            bomb.y += this.dt * bomb.velocity;
+        }
         for (var i = 0; i < this.config.invaderFiles; i++) {
-            var invader = this.frontRankInvaders[i];
-            console.log(invader);
-            if (!invader)
+            var invader = this.frontRankInvaders.get(i);
+            console.log(chance);
+            console.log(Math.random());
+            console.log(this.frontRankInvaders);
+            if (invader === undefined) {
+                console.log("!Invader is working");
                 continue;
-            var chance = this.config.bombRate * this.dt;
+            }
             if (chance > Math.random()) {
+                console.log("In Bomb Drop");
                 var bomb = {
                     x: invader.x,
                     y: invader.y + invader.height / 2,
