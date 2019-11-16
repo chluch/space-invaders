@@ -346,22 +346,16 @@ export class Game {
     }
 
     dropBomb() {
-        // console.log(this.frontRankInvaders);
         const chance: number = this.config.bombRate * this.dt;
         for (const bomb of this.bombs) {
             bomb.y += this.dt * bomb.velocity;
         }
         for (let i = 0; i < this.config.invaderFiles; i++) {
             const invader = this.frontRankInvaders.get(i);
-            console.log(chance);
-            console.log(Math.random());
-            console.log(this.frontRankInvaders);
             if (invader === undefined) {
-                console.log("!Invader is working")
                 continue;
             }
             if (chance > Math.random()) {
-                console.log("In Bomb Drop")
                 let bomb: Bomb = {
                     x: invader.x,
                     y: invader.y + invader.height / 2,
@@ -369,8 +363,6 @@ export class Game {
                 };
                 //  Fire!
                 this.bombs.push(bomb);
-                console.log(this.bombs);
-                console.log("Is this the bomb");
             }
         }
 
