@@ -324,7 +324,7 @@ var Game = /** @class */ (function () {
         this.level = 0;
         this.intervalId = null;
         this.state = { kind: 'Welcome' };
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', { alpha: false });
         this.inputs = new Set();
         this.lastRocketTime = null;
         this.ship = {
@@ -354,7 +354,7 @@ var Game = /** @class */ (function () {
         this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
         this.config.invaderNextVelocity = null;
-        //  Create the invaders.
+        //create invaders
         this.invaders = [];
         for (var rank = 0; rank < this.ranks; rank++) {
             for (var file = 0; file < this.files; file++) {
@@ -371,7 +371,7 @@ var Game = /** @class */ (function () {
         }
     };
     Game.prototype.loop = function () {
-        //  Delta t is the time to update/draw.
+        // delta t is the time to update/draw.
         this.update();
         this.draw();
     };
@@ -404,6 +404,14 @@ var Game = /** @class */ (function () {
                 this.checkRICollision();
                 this.checkFrontRank();
                 this.dropBomb();
+                this.checkBSCollision();
+                this.checkISCollision();
+                if (this.lives <= 0) {
+                    console.log('Gameover!');
+                    this.state = { kind: 'GameOver' };
+                }
+                break;
+            case 'GameOver':
                 break;
         }
     };
@@ -435,19 +443,37 @@ var Game = /** @class */ (function () {
                     this.ctx.fillRect(rocket.x, rocket.y - 2, 1, 4);
                 }
                 //draw invaders
-                this.ctx.fillStyle = '#009999';
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.imageSmoothingEnabled = false;
                 for (var i = 0; i < this.invaders.length; i++) {
                     var invader = this.invaders[i];
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
-                //  Draw bombs.
+                //draw bombs
                 this.ctx.fillStyle = '#ff5555';
                 for (var i = 0; i < this.bombs.length; i++) {
                     var bomb = this.bombs[i];
                     this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
                 }
+                //  Draw info.
+                var textYpos = this.bounds.bottom + 14 / 2;
+                this.ctx.font = "14px Arial";
+                this.ctx.fillStyle = '#ffffff';
+                var infoLives = "Lives: " + this.lives;
+                this.ctx.textAlign = "left";
+                this.ctx.fillText(infoLives, this.bounds.left, textYpos);
+                var infoScore = "Score: " + this.score + ", Level: " + this.level;
+                this.ctx.textAlign = "right";
+                this.ctx.fillText(infoScore, this.bounds.right, textYpos);
                 break;
             }
+            case 'GameOver':
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.ctx.font = "30px Arial";
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.textBaseline = "middle";
+                this.ctx.textAlign = "center";
+                this.ctx.fillText("Game Over", this.width / 2, this.height / 2 - 40);
         }
     };
     Game.prototype.stop = function () {
@@ -472,7 +498,7 @@ var Game = /** @class */ (function () {
                 y: this.ship.y - this.ship.height / 2,
                 velocity: this.config.rocketVelocity
             };
-            //  Add a rocket.
+            //Add rocket
             this.rockets.push(rocket);
             this.lastRocketTime = (new Date()).valueOf();
         }
@@ -506,7 +532,7 @@ var Game = /** @class */ (function () {
                 invader.y = newy;
             }
         }
-        //  Update invader velocities.
+        //Update invader velocities
         if (this.config.invadersAreDropping) {
             this.config.invaderCurrentDropDistance += this.config.invaderVelocity.y * this.dt;
             if (this.config.invaderCurrentDropDistance >= this.config.invaderDropDistance) {
@@ -515,26 +541,26 @@ var Game = /** @class */ (function () {
                 this.config.invaderCurrentDropDistance = 0;
             }
         }
-        //  If we've hit the left, move down then right.
+        //If we've hit the left, move down then right
         if (hitLeft) {
             this.config.invaderCurrentVelocity += this.config.invaderAcceleration;
             this.config.invaderVelocity = { x: 0, y: this.config.invaderCurrentVelocity };
             this.config.invadersAreDropping = true;
             this.config.invaderNextVelocity = { x: this.config.invaderCurrentVelocity, y: 0 };
         }
-        //  If we've hit the right, move down then left.
+        //If we've hit the right, move down then left
         if (hitRight) {
             this.config.invaderCurrentVelocity += this.config.invaderAcceleration;
             this.config.invaderVelocity = { x: 0, y: this.config.invaderCurrentVelocity };
             this.config.invadersAreDropping = true;
             this.config.invaderNextVelocity = { x: -this.config.invaderCurrentVelocity, y: 0 };
         }
-        //  If we've hit the bottom, it's game over.
+        //If we've hit the bottom - Gameover
         if (hitBottom) {
             this.config.lives = 0;
         }
     };
-    //  Check for rocket/invader collisions.
+    //Check Rocket/Invader collision
     Game.prototype.checkRICollision = function () {
         for (var i = 0; i < this.invaders.length; i++) {
             var invader = this.invaders[i];
@@ -543,14 +569,14 @@ var Game = /** @class */ (function () {
                 var rocket = this.rockets[j];
                 if (rocket.x >= (invader.x - invader.width / 2) && rocket.x <= (invader.x + invader.width / 2) &&
                     rocket.y >= (invader.y - invader.height / 2) && rocket.y <= (invader.y + invader.height / 2)) {
-                    //  Remove the rocket, set 'bang' so we don't process
-                    //  this rocket again.
+                    //Remove rocket
                     this.rockets.splice(j--, 1);
                     bang = true;
                     this.config.score += this.config.pointsPerInvader;
                     break;
                 }
             }
+            //Remove invader
             if (bang) {
                 this.invaders.splice(i--, 1);
             }
@@ -578,7 +604,6 @@ var Game = /** @class */ (function () {
         }
     };
     Game.prototype.dropBomb = function () {
-        // console.log(this.frontRankInvaders);
         var chance = this.config.bombRate * this.dt;
         for (var _i = 0, _a = this.bombs; _i < _a.length; _i++) {
             var bomb = _a[_i];
@@ -586,24 +611,43 @@ var Game = /** @class */ (function () {
         }
         for (var i = 0; i < this.config.invaderFiles; i++) {
             var invader = this.frontRankInvaders.get(i);
-            console.log(chance);
-            console.log(Math.random());
-            console.log(this.frontRankInvaders);
             if (invader === undefined) {
-                console.log("!Invader is working");
                 continue;
             }
             if (chance > Math.random()) {
-                console.log("In Bomb Drop");
                 var bomb = {
                     x: invader.x,
                     y: invader.y + invader.height / 2,
                     velocity: this.config.bombMinVelocity + Math.random() * (this.config.bombMaxVelocity - this.config.bombMinVelocity)
                 };
-                //  Fire!
+                //  Fire
                 this.bombs.push(bomb);
-                console.log(this.bombs);
-                console.log("Is this the bomb");
+            }
+        }
+    };
+    //Check Bomb/Ship collision
+    Game.prototype.checkBSCollision = function () {
+        for (var i = 0; i < this.bombs.length; i++) {
+            var bomb = this.bombs[i];
+            if (bomb.x >= (this.ship.x - this.ship.width / 2) && bomb.x <= (this.ship.x + this.ship.width / 2) &&
+                bomb.y >= (this.ship.y - this.ship.height / 2) && bomb.y <= (this.ship.y + this.ship.height / 2)) {
+                this.bombs.splice(i--, 1);
+                this.lives--;
+                console.log("hit!");
+            }
+        }
+    };
+    //Check Invader/Ship collision
+    Game.prototype.checkISCollision = function () {
+        for (var i = 0; i < this.invaders.length; i++) {
+            var invader = this.invaders[i];
+            if ((invader.x + invader.width / 2) > (this.ship.x - this.ship.width / 2) &&
+                (invader.x - invader.width / 2) < (this.ship.x + this.ship.width / 2) &&
+                (invader.y + invader.height / 2) > (this.ship.y - this.ship.height / 2) &&
+                (invader.y - invader.height / 2) < (this.ship.y + this.ship.height / 2)) {
+                //  Dead by collision!
+                console.log("hit by invader!");
+                this.lives = 0;
             }
         }
     };

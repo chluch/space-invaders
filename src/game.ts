@@ -68,7 +68,7 @@ export class Game {
         this.level = 0;
         this.intervalId = null;
         this.state = { kind: 'Welcome' };
-        this.ctx = this.canvas.getContext('2d')!;
+        this.ctx = this.canvas.getContext('2d', { alpha: false })!;
         this.inputs = new Set();
         this.lastRocketTime = null;
         this.ship = {
@@ -101,7 +101,7 @@ export class Game {
         this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
         this.config.invaderNextVelocity = null;
 
-        //  Create the invaders.
+        //create invaders
         this.invaders = [];
         for (let rank = 0; rank < this.ranks; rank++) {
             for (let file = 0; file < this.files; file++) {
@@ -120,7 +120,7 @@ export class Game {
 
 
     loop() {
-        //  Delta t is the time to update/draw.
+        // delta t is the time to update/draw.
         this.update();
         this.draw();
     }
@@ -133,6 +133,7 @@ export class Game {
                     this.start();
                 }
                 break;
+
             case 'Running':
                 if (this.inputs.has(KEY_LEFT)) {
                     const move = this.config.shipSpeed * this.dt;
@@ -154,6 +155,16 @@ export class Game {
                 this.checkRICollision();
                 this.checkFrontRank();
                 this.dropBomb();
+                this.checkBSCollision();
+                this.checkISCollision()
+                if (this.lives <= 0) {
+                    console.log('Gameover!');
+                    this.state = { kind: 'GameOver' }
+                }
+                break;
+
+            case 'GameOver':
+
                 break;
         }
     }
@@ -190,23 +201,40 @@ export class Game {
                 }
 
                 //draw invaders
-                this.ctx.fillStyle = '#009999';
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.imageSmoothingEnabled = false;
+
                 for (let i = 0; i < this.invaders.length; i++) {
                     const invader = this.invaders[i];
                     this.ctx.fillRect(invader.x - invader.width / 2, invader.y - invader.height / 2, invader.width, invader.height);
                 }
 
-                //  Draw bombs.
+                //draw bombs
                 this.ctx.fillStyle = '#ff5555';
                 for (let i = 0; i < this.bombs.length; i++) {
                     const bomb = this.bombs[i];
                     this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
                 }
-
-
-
+                //  Draw info.
+                const textYpos = this.bounds.bottom;
+                this.ctx.font = '14px Arial';
+                this.ctx.fillStyle = '#ffffff';
+                const infoLives = 'Lives: ' + this.lives;
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(infoLives, this.bounds.left, textYpos);
+                const infoScore = 'Score: ' + this.score + ', Level: ' + this.level;
+                this.ctx.textAlign = 'right' ;
+                this.ctx.fillText(infoScore, this.bounds.right, textYpos);
                 break;
             }
+            case 'GameOver':
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.ctx.font = "30px Arial";
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.textBaseline = "middle";
+                this.ctx.textAlign = "center";
+                this.ctx.fillText("Game Over", this.width / 2, this.height / 2 - 40);
+
         }
     }
 
@@ -235,7 +263,7 @@ export class Game {
                 y: this.ship.y - this.ship.height / 2,
                 velocity: this.config.rocketVelocity
             }
-            //  Add a rocket.
+            //Add rocket
             this.rockets.push(rocket);
             this.lastRocketTime = (new Date()).valueOf();
         }
@@ -271,7 +299,7 @@ export class Game {
                 invader.y = newy;
             }
         }
-        //  Update invader velocities.
+        //Update invader velocities
         if (this.config.invadersAreDropping) {
             this.config.invaderCurrentDropDistance += this.config.invaderVelocity!.y * this.dt;
             if (this.config.invaderCurrentDropDistance >= this.config.invaderDropDistance) {
@@ -280,27 +308,27 @@ export class Game {
                 this.config.invaderCurrentDropDistance = 0;
             }
         }
-        //  If we've hit the left, move down then right.
+        //If we've hit the left, move down then right
         if (hitLeft) {
             this.config.invaderCurrentVelocity += this.config.invaderAcceleration;
             this.config.invaderVelocity = { x: 0, y: this.config.invaderCurrentVelocity };
             this.config.invadersAreDropping = true;
             this.config.invaderNextVelocity = { x: this.config.invaderCurrentVelocity, y: 0 };
         }
-        //  If we've hit the right, move down then left.
+        //If we've hit the right, move down then left
         if (hitRight) {
             this.config.invaderCurrentVelocity += this.config.invaderAcceleration;
             this.config.invaderVelocity = { x: 0, y: this.config.invaderCurrentVelocity };
             this.config.invadersAreDropping = true;
             this.config.invaderNextVelocity = { x: -this.config.invaderCurrentVelocity, y: 0 };
         }
-        //  If we've hit the bottom, it's game over.
+        //If we've hit the bottom - Gameover
         if (hitBottom) {
             this.config.lives = 0;
         }
     }
 
-    //  Check for rocket/invader collisions.
+    //Check Rocket/Invader collision
     checkRICollision() {
         for (let i = 0; i < this.invaders.length; i++) {
             const invader = this.invaders[i];
@@ -312,14 +340,14 @@ export class Game {
                 if (rocket.x >= (invader.x - invader.width / 2) && rocket.x <= (invader.x + invader.width / 2) &&
                     rocket.y >= (invader.y - invader.height / 2) && rocket.y <= (invader.y + invader.height / 2)) {
 
-                    //  Remove the rocket, set 'bang' so we don't process
-                    //  this rocket again.
+                    //Remove rocket
                     this.rockets.splice(j--, 1);
                     bang = true;
                     this.config.score += this.config.pointsPerInvader;
                     break;
                 }
             }
+            //Remove invader
             if (bang) {
                 this.invaders.splice(i--, 1);
             }
@@ -361,11 +389,43 @@ export class Game {
                     y: invader.y + invader.height / 2,
                     velocity: this.config.bombMinVelocity + Math.random() * (this.config.bombMaxVelocity - this.config.bombMinVelocity)
                 };
-                //  Fire!
+                //  Fire
                 this.bombs.push(bomb);
             }
         }
 
     }
 
+    //Check Bomb/Ship collision
+    checkBSCollision() {
+        for (let i = 0; i < this.bombs.length; i++) {
+            let bomb = this.bombs[i];
+            if (bomb.x >= (this.ship.x - this.ship.width / 2) && bomb.x <= (this.ship.x + this.ship.width / 2) &&
+                bomb.y >= (this.ship.y - this.ship.height / 2) && bomb.y <= (this.ship.y + this.ship.height / 2)) {
+                this.bombs.splice(i--, 1);
+                this.lives--;
+                console.log("hit!");
+            }
+        }
+    }
+
+    //Check Invader/Ship collision
+    checkISCollision() {
+        for (let i = 0; i < this.invaders.length; i++) {
+            let invader = this.invaders[i];
+            if ((invader.x + invader.width / 2) > (this.ship.x - this.ship.width / 2) &&
+                (invader.x - invader.width / 2) < (this.ship.x + this.ship.width / 2) &&
+                (invader.y + invader.height / 2) > (this.ship.y - this.ship.height / 2) &&
+                (invader.y - invader.height / 2) < (this.ship.y + this.ship.height / 2)) {
+                //  Dead by collision!
+                console.log("hit by invader!")
+                this.lives = 0;
+            }
+
+        }
+    }
 }
+
+
+
+
