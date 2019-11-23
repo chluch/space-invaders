@@ -65,7 +65,7 @@ export class Game {
         };
         this.dt = 1 / this.config.fps;
         this.score = 0;
-        this.level = 0;
+        this.level = 1;
         this.intervalId = null;
         this.state = { kind: 'Welcome' };
         this.ctx = this.canvas.getContext('2d', { alpha: false })!;
@@ -83,7 +83,6 @@ export class Game {
         this.frontRankInvaders = new Map();
         this.ranks = this.config.invaderRanks + 0.1 * this.config.limitLevel;
         this.files = this.config.invaderFiles + 0.2 * this.config.limitLevel;
-
     }
 
     init() {
@@ -92,15 +91,16 @@ export class Game {
 
     start() {
         //  Set the ship speed for this level, as well as invader params.
-        this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (this.config.levelMultiplier * this.config.invaderInitialVelocity);
-        this.config.bombRate = this.config.bombRate + (this.config.levelMultiplier * this.config.bombRate);
-        this.config.bombMinVelocity = this.config.bombMinVelocity + (this.config.levelMultiplier * this.config.bombMinVelocity);
-        this.config.bombMaxVelocity = this.config.bombMaxVelocity + (this.config.levelMultiplier * this.config.bombMaxVelocity);
-        this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * this.config.limitLevel;
-        this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
-        this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
-        this.config.invaderNextVelocity = null;
+        // this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (this.config.levelMultiplier * this.config.invaderInitialVelocity);
+        // this.config.bombRate = this.config.bombRate + (this.config.levelMultiplier * this.config.bombRate);
+        // this.config.bombMinVelocity = this.config.bombMinVelocity + (this.config.levelMultiplier * this.config.bombMinVelocity);
+        // this.config.bombMaxVelocity = this.config.bombMaxVelocity + (this.config.levelMultiplier * this.config.bombMaxVelocity);
+        // this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * this.config.limitLevel;
+        // this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
+        // this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
+        // this.config.invaderNextVelocity = null;      
 
+        this.lives = 3;
         //create invaders
         this.invaders = [];
         for (let rank = 0; rank < this.ranks; rank++) {
@@ -156,15 +156,18 @@ export class Game {
                 this.checkFrontRank();
                 this.dropBomb();
                 this.checkBSCollision();
-                this.checkISCollision()
+                this.checkISCollision();
                 if (this.lives <= 0) {
-                    console.log('Gameover!');
-                    this.state = { kind: 'GameOver' }
+                    this.state = { kind: 'GameOver' };
                 }
                 break;
 
             case 'GameOver':
+                if (this.inputs.has(KEY_SPACE)) {
+                    this.inputs.clear();
+                    this.state = { kind: 'Welcome' };
 
+                }
                 break;
         }
     }
@@ -216,14 +219,14 @@ export class Game {
                     this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
                 }
                 //  Draw info.
-                const textYpos = this.bounds.bottom;
-                this.ctx.font = '14px Arial';
+                const textYpos = this.bounds.top + 5;
+                this.ctx.font = '10px Arial';
                 this.ctx.fillStyle = '#ffffff';
                 const infoLives = 'Lives: ' + this.lives;
                 this.ctx.textAlign = 'left';
                 this.ctx.fillText(infoLives, this.bounds.left, textYpos);
                 const infoScore = 'Score: ' + this.score + ', Level: ' + this.level;
-                this.ctx.textAlign = 'right' ;
+                this.ctx.textAlign = 'right';
                 this.ctx.fillText(infoScore, this.bounds.right, textYpos);
                 break;
             }
@@ -343,7 +346,7 @@ export class Game {
                     //Remove rocket
                     this.rockets.splice(j--, 1);
                     bang = true;
-                    this.config.score += this.config.pointsPerInvader;
+                    this.score += this.config.pointsPerInvader;
                     break;
                 }
             }

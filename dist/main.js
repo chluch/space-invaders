@@ -321,7 +321,7 @@ var Game = /** @class */ (function () {
         };
         this.dt = 1 / this.config.fps;
         this.score = 0;
-        this.level = 0;
+        this.level = 1;
         this.intervalId = null;
         this.state = { kind: 'Welcome' };
         this.ctx = this.canvas.getContext('2d', { alpha: false });
@@ -346,14 +346,15 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.start = function () {
         //  Set the ship speed for this level, as well as invader params.
-        this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (this.config.levelMultiplier * this.config.invaderInitialVelocity);
-        this.config.bombRate = this.config.bombRate + (this.config.levelMultiplier * this.config.bombRate);
-        this.config.bombMinVelocity = this.config.bombMinVelocity + (this.config.levelMultiplier * this.config.bombMinVelocity);
-        this.config.bombMaxVelocity = this.config.bombMaxVelocity + (this.config.levelMultiplier * this.config.bombMaxVelocity);
-        this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * this.config.limitLevel;
-        this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
-        this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
-        this.config.invaderNextVelocity = null;
+        // this.config.invaderInitialVelocity = this.config.invaderInitialVelocity + 1.5 * (this.config.levelMultiplier * this.config.invaderInitialVelocity);
+        // this.config.bombRate = this.config.bombRate + (this.config.levelMultiplier * this.config.bombRate);
+        // this.config.bombMinVelocity = this.config.bombMinVelocity + (this.config.levelMultiplier * this.config.bombMinVelocity);
+        // this.config.bombMaxVelocity = this.config.bombMaxVelocity + (this.config.levelMultiplier * this.config.bombMaxVelocity);
+        // this.config.rocketMaxFireRate = this.config.rocketMaxFireRate + 0.4 * this.config.limitLevel;
+        // this.config.invaderCurrentVelocity = this.config.invaderInitialVelocity;
+        // this.config.invaderVelocity = { x: -this.config.invaderInitialVelocity, y: 0 };
+        // this.config.invaderNextVelocity = null;      
+        this.lives = 3;
         //create invaders
         this.invaders = [];
         for (var rank = 0; rank < this.ranks; rank++) {
@@ -407,11 +408,14 @@ var Game = /** @class */ (function () {
                 this.checkBSCollision();
                 this.checkISCollision();
                 if (this.lives <= 0) {
-                    console.log('Gameover!');
                     this.state = { kind: 'GameOver' };
                 }
                 break;
             case 'GameOver':
+                if (this.inputs.has(KEY_SPACE)) {
+                    this.inputs.clear();
+                    this.state = { kind: 'Welcome' };
+                }
                 break;
         }
     };
@@ -456,14 +460,14 @@ var Game = /** @class */ (function () {
                     this.ctx.fillRect(bomb.x - 2, bomb.y - 2, 4, 4);
                 }
                 //  Draw info.
-                var textYpos = this.bounds.bottom + 14 / 2;
-                this.ctx.font = "14px Arial";
+                var textYpos = this.bounds.top + 5;
+                this.ctx.font = '10px Arial';
                 this.ctx.fillStyle = '#ffffff';
-                var infoLives = "Lives: " + this.lives;
-                this.ctx.textAlign = "left";
+                var infoLives = 'Lives: ' + this.lives;
+                this.ctx.textAlign = 'left';
                 this.ctx.fillText(infoLives, this.bounds.left, textYpos);
-                var infoScore = "Score: " + this.score + ", Level: " + this.level;
-                this.ctx.textAlign = "right";
+                var infoScore = 'Score: ' + this.score + ', Level: ' + this.level;
+                this.ctx.textAlign = 'right';
                 this.ctx.fillText(infoScore, this.bounds.right, textYpos);
                 break;
             }
@@ -572,7 +576,7 @@ var Game = /** @class */ (function () {
                     //Remove rocket
                     this.rockets.splice(j--, 1);
                     bang = true;
-                    this.config.score += this.config.pointsPerInvader;
+                    this.score += this.config.pointsPerInvader;
                     break;
                 }
             }
